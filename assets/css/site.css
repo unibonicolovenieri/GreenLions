@@ -1,0 +1,168 @@
+/* ============================================================
+   Green Lions — foglio di stile comune a tutte le pagine.
+
+   I colori vengono dalle divise: giallo e verde della prima
+   maglia, bianco e azzurro del portiere, rosso della seconda.
+
+   Nota: divise/index.html NON usa questo file. È volutamente
+   un unico file autonomo (si può aprire con doppio clic o
+   trascinare su netlify.com/drop senza portarsi dietro nulla),
+   quindi ha una sua copia di questi token. Se cambi un colore
+   qui, cambialo anche là.
+   ============================================================ */
+
+:root {
+  --kit-giallo:  #efc41a;
+  --kit-verde:   #1c7a3e;
+  --kit-verde-s: #12522a;
+  --kit-rosso:   #c8202b;
+  --kit-bianco:  #eef3f4;
+  --kit-azzurro: #58bcd6;
+
+  --bg:        #f6f4e9;
+  --surface:   #ffffff;
+  --surface-2: #ece9d9;
+  --ink:       #16211a;
+  --ink-2:     #566159;
+  --ink-3:     #8b948c;
+  --line:      #ddd9c6;
+  --accent:    var(--kit-verde);
+  --accent-ink:#ffffff;
+  --accent-sf: #e2f0e5;
+  --radius:    14px;
+  --shadow:    0 1px 2px rgba(18,40,26,.07), 0 10px 26px -14px rgba(18,40,26,.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        #0d1610;
+    --surface:   #15201a;
+    --surface-2: #1e2b23;
+    --ink:       #eaf0ea;
+    --ink-2:     #9fada3;
+    --ink-3:     #67756c;
+    --line:      #27352c;
+    --accent:    #3fb56e;
+    --accent-ink:#06170d;
+    --accent-sf: #16311f;
+    --shadow:    0 1px 2px rgba(0,0,0,.5), 0 10px 26px -14px rgba(0,0,0,.8);
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  padding: 0 0 env(safe-area-inset-bottom);
+}
+
+/* fascia superiore a righe, come la maglia gialloverde */
+.banda {
+  height: 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--kit-verde) 0 22px,
+    var(--kit-giallo) 22px 44px
+  );
+}
+
+.wrap { max-width: 820px; margin: 0 auto; padding: 26px 16px 64px; }
+
+/* ---- intestazione ---- */
+
+.site-head { text-align: center; padding: 4px 0 22px; }
+
+.crest {
+  display: inline-flex; align-items: center; gap: 7px;
+  font: 800 11.5px/1 ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--kit-verde-s);
+  background: var(--kit-giallo);
+  padding: 8px 14px; border-radius: 999px;
+  box-shadow: inset 0 0 0 2px var(--kit-verde);
+  text-decoration: none;
+}
+@media (prefers-color-scheme: dark) { .crest { color: #123; } }
+
+.leo { width: 17px; height: 17px; flex: none; margin-left: -4px; }
+/* nel bollino giallo il muso del leone diventa crema, altrimenti si confonde col fondo */
+.crest .leo { --leo-faccia: #f8f6ec; }
+
+h1 { margin: 16px 0 6px; font-size: clamp(27px, 6.4vw, 38px); line-height: 1.12; letter-spacing: -.025em; }
+.lede { margin: 0 auto; max-width: 52ch; color: var(--ink-2); font-size: 15.5px; }
+
+/* ---- elenco delle pagine ---- */
+
+.cards { display: grid; gap: 12px; margin: 30px 0 0; }
+
+.card {
+  display: flex; align-items: center; gap: 15px;
+  padding: 17px 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 5px solid var(--kit-giallo);
+  border-radius: var(--radius);
+  text-decoration: none; color: inherit;
+  transition: transform .12s ease, border-color .12s, box-shadow .12s;
+}
+.card:hover { border-color: var(--kit-verde); border-left-color: var(--kit-verde); transform: translateY(-2px); box-shadow: var(--shadow); }
+.card:focus-visible { outline: 2px solid var(--kit-verde); outline-offset: 2px; }
+
+.card-ico { flex: none; width: 42px; height: 42px; display: grid; place-items: center; }
+.card-ico svg { width: 100%; height: 100%; }
+
+.card-txt { flex: 1; min-width: 0; }
+.card-title { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; font-size: 17.5px; font-weight: 700; letter-spacing: -.012em; }
+.card-desc { display: block; margin-top: 3px; font-size: 13.5px; color: var(--ink-2); }
+.card-go { flex: none; color: var(--ink-3); font-size: 20px; line-height: 1; }
+.card:hover .card-go { color: var(--kit-verde); }
+
+/* pagine non ancora pronte: stesso posto, tono più spento */
+.card.is-soon { border-left-color: var(--line); background: var(--surface-2); }
+.card.is-soon .card-ico { opacity: .55; }
+
+.badge {
+  font: 700 10px/1 ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: .09em; text-transform: uppercase;
+  padding: 4px 7px; border-radius: 999px;
+  background: var(--accent-sf); color: var(--kit-verde);
+}
+@media (prefers-color-scheme: dark) { .badge { color: var(--accent); } }
+.badge.soon { background: var(--surface-2); color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line); }
+
+/* ---- riquadro nota ---- */
+
+.note {
+  margin: 26px 0 0; padding: 13px 15px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-left: 4px solid var(--kit-rosso);
+  border-radius: 10px; font-size: 13.5px; color: var(--ink-2);
+}
+
+/* ---- pagine interne ---- */
+
+.back {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-bottom: 4px; font-size: 13.5px; font-weight: 600;
+  color: var(--ink-2); text-decoration: none;
+}
+.back:hover { color: var(--kit-verde); }
+
+.pannello {
+  margin: 26px 0 0; padding: 26px 22px;
+  background: var(--surface); border: 1px dashed var(--line);
+  border-radius: var(--radius); text-align: center; color: var(--ink-2);
+}
+.pannello h2 { margin: 0 0 8px; font-size: 19px; color: var(--ink); letter-spacing: -.015em; }
+.pannello p { margin: 0 auto; max-width: 46ch; font-size: 14.5px; }
+
+.site-footer {
+  margin-top: 38px; padding-top: 18px;
+  border-top: 1px solid var(--line);
+  text-align: center; font-size: 12.5px; color: var(--ink-3);
+}
+.site-footer a { color: var(--ink-2); }

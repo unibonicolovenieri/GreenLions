@@ -3,232 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="robots" content="noindex, nofollow">
-<title>Scegli il tuo numero · Green Lions</title>
-<meta name="description" content="17 divise, chi prima arriva prima prende. Scegli il tuo numero e lascia i tuoi dati.">
+<title>Green Lions</title>
+<meta name="description" content="Il sito dei Green Lions: prenotazione delle divise, squadra e staff, calendario e risultati.">
 <meta name="theme-color" content="#1c7a3e">
 
-<!-- Il leone nella scheda del browser. È scritto qui dentro, quindi
-     funziona anche se i due .png qui sotto non vengono caricati. -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%0A%20%20%3Cpath%20d='M50.0%202.0%20L58.1%2017.0%20L72.3%207.5%20L72.5%2024.6%20L89.5%2022.7%20L81.8%2037.9%20L97.7%2044.2%20L83.8%2054.1%20L94.9%2067.0%20L78.0%2069.3%20L81.8%2085.9%20L65.8%2080.1%20L61.5%2096.6%20L50.0%2084.0%20L38.5%2096.6%20L34.2%2080.1%20L18.2%2085.9%20L22.0%2069.3%20L5.1%2067.0%20L16.2%2054.1%20L2.3%2044.2%20L18.2%2037.9%20L10.5%2022.7%20L27.5%2024.6%20L27.7%207.5%20L41.9%2017.0%20Z'%20style='fill:var(--leo-criniera,%231c7a3e)'/%3E%0A%20%20%3Ccircle%20cx='50'%20cy='50'%20r='34'%20style='fill:var(--leo-criniera,%231c7a3e)'/%3E%0A%20%20%3Ccircle%20cx='29'%20cy='32'%20r='8.5'%20style='fill:var(--leo-faccia,%23efc41a)'/%3E%0A%20%20%3Ccircle%20cx='71'%20cy='32'%20r='8.5'%20style='fill:var(--leo-faccia,%23efc41a)'/%3E%0A%20%20%3Ccircle%20cx='29'%20cy='32'%20r='3.8'%20style='fill:var(--leo-tratti,%2312522a)'/%3E%0A%20%20%3Ccircle%20cx='71'%20cy='32'%20r='3.8'%20style='fill:var(--leo-tratti,%2312522a)'/%3E%0A%20%20%3Ccircle%20cx='50'%20cy='52'%20r='27'%20style='fill:var(--leo-faccia,%23efc41a)'/%3E%0A%20%20%3Cellipse%20cx='39'%20cy='45'%20rx='4.4'%20ry='5.4'%20style='fill:var(--leo-tratti,%2312522a)'/%3E%0A%20%20%3Cellipse%20cx='61'%20cy='45'%20rx='4.4'%20ry='5.4'%20style='fill:var(--leo-tratti,%2312522a)'/%3E%0A%20%20%3Cpath%20d='M50%2066%20L41.5%2057.5%20L58.5%2057.5%20Z'%20style='fill:var(--leo-tratti,%2312522a)'/%3E%0A%20%20%3Cpath%20d='M50%2066%20L50%2072'%20fill='none'%20style='stroke:var(--leo-tratti,%2312522a)'%20stroke-width='3.4'%20stroke-linecap='round'/%3E%0A%20%20%3Cpath%20d='M50%2072%20q%20-7%206%20-13%200'%20fill='none'%20style='stroke:var(--leo-tratti,%2312522a)'%20stroke-width='3.4'%20stroke-linecap='round'/%3E%0A%20%20%3Cpath%20d='M50%2072%20q%20%207%206%20%2013%200'%20fill='none'%20style='stroke:var(--leo-tratti,%2312522a)'%20stroke-width='3.4'%20stroke-linecap='round'/%3E%0A%3C/svg%3E">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="/assets/img/leone.svg">
+<link rel="icon" type="image/png" href="/assets/img/favicon.png">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/css/site.css">
 
-<!-- Anteprima quando il link viene incollato su WhatsApp. -->
+<!-- DOMINIO: se il sito cambia indirizzo, aggiorna le due righe qui sotto.
+     In README c'è il comando per farlo su tutte le pagine in un colpo solo. -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="Divise Green Lions — scegli il tuo numero">
-<meta property="og:description" content="17 divise, chi prima arriva prima prende. Tocca un numero libero e lascia i tuoi dati.">
-<meta property="og:image" content="https://divisegreenlions.netlify.app/og-image.png">
+<meta property="og:title" content="Green Lions">
+<meta property="og:description" content="Divise, squadra, calendario: tutto quello che serve, in un posto solo.">
+<meta property="og:image" content="https://divisegreenlions.netlify.app/assets/img/og-image.png">
 <meta property="og:url" content="https://divisegreenlions.netlify.app/">
 <meta name="twitter:card" content="summary_large_image">
-<style>
-  :root {
-    /* colori presi dalle divise: giallo e verde della prima maglia,
-       bianco e azzurro del portiere, rosso della seconda */
-    --kit-giallo:  #efc41a;
-    --kit-verde:   #1c7a3e;
-    --kit-verde-s: #12522a;
-    --kit-rosso:   #c8202b;
-    --kit-bianco:  #eef3f4;
-    --kit-azzurro: #58bcd6;
-
-    --bg:        #f6f4e9;
-    --surface:   #ffffff;
-    --surface-2: #ece9d9;
-    --ink:       #16211a;
-    --ink-2:     #566159;
-    --ink-3:     #8b948c;
-    --line:      #ddd9c6;
-    --accent:    var(--kit-verde);
-    --accent-ink:#ffffff;
-    --accent-sf: #e2f0e5;
-    --danger:    #9d1a24;
-    --danger-sf: #fbeae9;
-    --radius:    14px;
-    --shadow:    0 1px 2px rgba(18,40,26,.07), 0 10px 26px -14px rgba(18,40,26,.35);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg:        #0d1610;
-      --surface:   #15201a;
-      --surface-2: #1e2b23;
-      --ink:       #eaf0ea;
-      --ink-2:     #9fada3;
-      --ink-3:     #67756c;
-      --line:      #27352c;
-      --accent:    #3fb56e;
-      --accent-ink:#06170d;
-      --accent-sf: #16311f;
-      --danger:    #f0999b;
-      --danger-sf: #33191b;
-      --shadow:    0 1px 2px rgba(0,0,0,.5), 0 10px 26px -14px rgba(0,0,0,.8);
-    }
-  }
-
-  * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font: 400 16px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    padding: 0 0 env(safe-area-inset-bottom);
-  }
-
-  /* fascia superiore a righe, come la maglia gialloverde */
-  .banda {
-    height: 8px;
-    background: repeating-linear-gradient(
-      90deg,
-      var(--kit-verde) 0 22px,
-      var(--kit-giallo) 22px 44px
-    );
-  }
-
-  .wrap { max-width: 740px; margin: 0 auto; padding: 26px 16px 64px; }
-
-  header { text-align: center; padding: 4px 0 20px; }
-  .crest {
-    display: inline-flex; align-items: center; gap: 7px;
-    font: 800 11.5px/1 ui-sans-serif, system-ui, sans-serif;
-    letter-spacing: .16em; text-transform: uppercase;
-    color: var(--kit-verde-s);
-    background: var(--kit-giallo);
-    padding: 8px 14px; border-radius: 999px;
-    box-shadow: inset 0 0 0 2px var(--kit-verde);
-  }
-  @media (prefers-color-scheme: dark) { .crest { color: #123; } }
-  .leo { width: 17px; height: 17px; flex: none; margin-left: -4px; }
-  /* nel bollino giallo il muso del leone diventa crema, altrimenti si confonde col fondo */
-  .crest .leo { --leo-faccia: #f8f6ec; }
-  h1 { margin: 16px 0 6px; font-size: clamp(27px, 6.4vw, 36px); line-height: 1.12; letter-spacing: -.025em; }
-  .lede { margin: 0 auto; max-width: 46ch; color: var(--ink-2); font-size: 15px; }
-
-  .bar {
-    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-    gap: 10px; margin: 24px 0 14px; padding: 12px 15px;
-    background: var(--surface); border: 1px solid var(--line);
-    border-left: 5px solid var(--kit-giallo);
-    border-radius: var(--radius);
-  }
-  .count { font-weight: 650; font-size: 15px; }
-  .count b { font-size: 21px; color: var(--accent); }
-  .legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--ink-2); }
-  .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: 1px; }
-  .legend .free  { background: var(--kit-verde); }
-  .legend .taken { background: var(--ink-3); }
-
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(98px, 1fr)); gap: 10px; }
-
-  .kit {
-    position: relative;
-    appearance: none; -webkit-appearance: none;
-    font: inherit; text-align: center; color: inherit;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 12px 8px 10px;
-    cursor: pointer;
-    transition: transform .12s ease, border-color .12s, box-shadow .12s;
-    min-height: 128px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-    overflow: hidden;
-    --maglia: var(--kit-giallo);
-    --trim:   var(--kit-verde);
-  }
-  .kit::before {
-    content: ""; position: absolute; inset: 0 0 auto; height: 4px;
-    background: var(--trim);
-  }
-  .kit:hover:not(:disabled) { border-color: var(--kit-verde); transform: translateY(-2px); box-shadow: var(--shadow); }
-  .kit:active:not(:disabled) { transform: translateY(0); }
-  .kit:focus-visible { outline: 2px solid var(--kit-verde); outline-offset: 2px; }
-
-  .jersey { width: 30px; height: 27px; display: block; margin-bottom: 2px; }
-
-  .kit .num { font-size: 33px; font-weight: 800; line-height: 1; letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
-  .kit .sub { font-size: 11.5px; color: var(--ink-3); }
-  .kit .state { font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--kit-verde); margin-top: 2px; }
-
-  .kit[data-taken] { background: var(--surface-2); cursor: not-allowed; }
-  .kit[data-taken] .jersey { filter: grayscale(1); opacity: .4; }
-  .kit[data-taken]::before { background: var(--ink-3); opacity: .4; }
-  .kit[data-taken] .num, .kit[data-taken] .state, .kit[data-taken] .sub { color: var(--ink-3); }
-
-  /* il portiere ha la divisa bianca e azzurra */
-  .kit[data-gk] { --maglia: var(--kit-bianco); --trim: var(--kit-azzurro); }
-  .kit[data-gk] .state { color: #1f8ba5; }
-  .kit[data-gk]:hover:not(:disabled) { border-color: var(--kit-azzurro); }
-  .kit[data-gk] .sub {
-    color: #14647a; background: #d9eff5;
-    border-radius: 5px; padding: 1px 6px; font-weight: 700;
-    font-size: 10px; letter-spacing: .02em; white-space: nowrap;
-  }
-  @media (prefers-color-scheme: dark) {
-    .kit[data-gk] .sub { color: #bfe8f2; background: #123640; }
-    .kit[data-gk] .state { color: var(--kit-azzurro); }
-  }
-  .kit[data-taken][data-gk] .sub { color: var(--ink-3); background: transparent; }
-
-  .note {
-    margin: 18px 0 0; padding: 13px 15px;
-    background: var(--surface); border: 1px solid var(--line);
-    border-left: 4px solid var(--kit-rosso);
-    border-radius: 10px; font-size: 13.5px; color: var(--ink-2);
-  }
-
-  dialog {
-    border: none; border-radius: 18px; padding: 0;
-    background: var(--surface); color: var(--ink);
-    width: min(440px, calc(100vw - 24px));
-    box-shadow: var(--shadow); overflow: hidden;
-  }
-  dialog::backdrop { background: rgba(9,22,14,.6); backdrop-filter: blur(2px); }
-  .testata { height: 6px; background: linear-gradient(90deg, var(--kit-verde), var(--kit-giallo)); }
-  .sheet { padding: 20px 22px 22px; }
-  .sheet h2 { margin: 0 0 4px; font-size: 20px; letter-spacing: -.015em; }
-  .sheet .pick { display: flex; align-items: center; gap: 11px; margin: 10px 0 18px; color: var(--ink-2); font-size: 14px; }
-  .sheet .pick b { font-size: 31px; color: var(--kit-verde); font-weight: 800; font-variant-numeric: tabular-nums; }
-  .sheet .pick .jersey { width: 34px; height: 31px; margin: 0; }
-  @media (prefers-color-scheme: dark) { .sheet .pick b { color: var(--accent); } }
-
-  label { display: block; margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
-  label span { display: block; margin-bottom: 5px; }
-  input, textarea {
-    width: 100%;
-    font: 400 16px/1.4 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: var(--ink); background: var(--bg);
-    border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px;
-  }
-  input:focus, textarea:focus { outline: 2px solid var(--kit-verde); outline-offset: -1px; border-color: transparent; }
-  textarea { resize: vertical; min-height: 62px; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  @media (max-width: 359px) { .row { grid-template-columns: 1fr; } }
-
-  .consent { display: flex; gap: 9px; align-items: flex-start; font-size: 12.5px; font-weight: 400; color: var(--ink-2); margin: 4px 0 18px; }
-  .consent input { width: auto; margin: 2px 0 0; flex: none; accent-color: var(--kit-verde); }
-
-  .actions { display: flex; gap: 9px; }
-  button.btn {
-    flex: 1; padding: 14px 16px; border-radius: 11px; border: 1px solid transparent; cursor: pointer;
-    font: 700 15px/1 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
-  .btn.primary { background: var(--kit-verde); color: #fff; }
-  .btn.primary:disabled { opacity: .55; cursor: wait; }
-  .btn.ghost { background: transparent; color: var(--ink-2); border-color: var(--line); flex: 0 0 auto; padding-inline: 18px; }
-  @media (prefers-color-scheme: dark) { .btn.primary { background: var(--accent); color: var(--accent-ink); } }
-
-  .msg { border-radius: 10px; padding: 11px 13px; font-size: 13.5px; margin: 0 0 14px; display: none; }
-  .msg.show { display: block; }
-  .msg.err { background: var(--danger-sf); color: var(--danger); }
-
-  .done { text-align: center; padding: 30px 24px 26px; }
-  .done .jersey { width: 62px; height: 56px; margin: 0 auto 14px; }
-  .done h2 { margin: 0 0 8px; font-size: 21px; }
-  .done p { margin: 0 0 20px; color: var(--ink-2); font-size: 14.5px; }
-
-  footer { margin-top: 32px; text-align: center; font-size: 12px; color: var(--ink-3); }
-  .skel { opacity: .4; pointer-events: none; }
-</style>
 </head>
 <body>
 
@@ -248,291 +39,82 @@
   <path d="M50 66 L50 72" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
   <path d="M50 72 q -7 6 -13 0" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
   <path d="M50 72 q  7 6  13 0" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/></symbol>
+
   <symbol id="maglia" viewBox="0 0 34 30">
-    <path style="fill:var(--maglia)" d="M12 3 L6.5 5 L2 9.5 L5.5 13.8 L9 11.2 L9 27.4 L25 27.4 L25 11.2 L28.5 13.8 L32 9.5 L27.5 5 L22 3 C22 6.1 19.8 7.6 17 7.6 C14.2 7.6 12 6.1 12 3 Z"/>
-    <path style="fill:var(--trim)" d="M9 24.4 L25 24.4 L25 27.4 L9 27.4 Z"/>
-    <path style="fill:var(--trim)" d="M6.5 5 L2 9.5 L5.5 13.8 L7.6 12.2 L4.6 9.2 L8 5.7 Z"/>
-    <path style="fill:var(--trim)" d="M27.5 5 L32 9.5 L28.5 13.8 L26.4 12.2 L29.4 9.2 L26 5.7 Z"/>
-    <path style="fill:var(--trim)" d="M12 3 L13.7 2.4 C13.7 5 15.1 6.3 17 6.3 C18.9 6.3 20.3 5 20.3 2.4 L22 3 C22 6.1 19.8 7.6 17 7.6 C14.2 7.6 12 6.1 12 3 Z"/>
+    <path style="fill:var(--kit-giallo)" d="M12 3 L6.5 5 L2 9.5 L5.5 13.8 L9 11.2 L9 27.4 L25 27.4 L25 11.2 L28.5 13.8 L32 9.5 L27.5 5 L22 3 C22 6.1 19.8 7.6 17 7.6 C14.2 7.6 12 6.1 12 3 Z"/>
+    <path style="fill:var(--kit-verde)" d="M9 24.4 L25 24.4 L25 27.4 L9 27.4 Z"/>
+    <path style="fill:var(--kit-verde)" d="M6.5 5 L2 9.5 L5.5 13.8 L7.6 12.2 L4.6 9.2 L8 5.7 Z"/>
+    <path style="fill:var(--kit-verde)" d="M27.5 5 L32 9.5 L28.5 13.8 L26.4 12.2 L29.4 9.2 L26 5.7 Z"/>
+    <path style="fill:var(--kit-verde)" d="M12 3 L13.7 2.4 C13.7 5 15.1 6.3 17 6.3 C18.9 6.3 20.3 5 20.3 2.4 L22 3 C22 6.1 19.8 7.6 17 7.6 C14.2 7.6 12 6.1 12 3 Z"/>
+  </symbol>
+
+  <symbol id="persone" viewBox="0 0 34 30">
+    <circle cx="9" cy="10" r="4.4" style="fill:var(--kit-verde)"/>
+    <path style="fill:var(--kit-verde)" d="M1.5 26 C1.5 20.6 4.9 17 9 17 C13.1 17 16.5 20.6 16.5 26 Z"/>
+    <circle cx="25" cy="10" r="4.4" style="fill:var(--kit-verde)"/>
+    <path style="fill:var(--kit-verde)" d="M17.5 26 C17.5 20.6 20.9 17 25 17 C29.1 17 32.5 20.6 32.5 26 Z"/>
+    <circle cx="17" cy="7.5" r="5.4" style="fill:var(--kit-giallo)"/>
+    <path style="fill:var(--kit-giallo)" d="M8 27 C8 20.4 12 16 17 16 C22 16 26 20.4 26 27 Z"/>
+  </symbol>
+
+  <symbol id="calendario" viewBox="0 0 34 30">
+    <rect x="3" y="4" width="28" height="24" rx="4" style="fill:var(--kit-verde)"/>
+    <rect x="3" y="4" width="28" height="7.5" rx="4" style="fill:var(--kit-giallo)"/>
+    <rect x="3" y="8" width="28" height="3.5" style="fill:var(--kit-giallo)"/>
+    <rect x="9" y="1.5" width="3.4" height="6" rx="1.7" style="fill:var(--kit-verde-s)"/>
+    <rect x="21.6" y="1.5" width="3.4" height="6" rx="1.7" style="fill:var(--kit-verde-s)"/>
+    <circle cx="11" cy="17.5" r="2.1" style="fill:var(--kit-bianco)"/>
+    <circle cx="17" cy="17.5" r="2.1" style="fill:var(--kit-bianco)"/>
+    <circle cx="23" cy="17.5" r="2.1" style="fill:var(--kit-giallo)"/>
+    <circle cx="11" cy="23" r="2.1" style="fill:var(--kit-bianco)"/>
+    <circle cx="17" cy="23" r="2.1" style="fill:var(--kit-bianco)"/>
   </symbol>
 </svg>
 
 <div class="wrap">
-  <header>
-    <div class="crest"><svg class="leo" viewBox="0 0 100 100" aria-hidden="true"><use href="#leone"></use></svg><span id="crest">Green Lions</span></div>
-    <h1>Scegli il tuo numero</h1>
-    <p class="lede">Chi prima arriva, prima prende. Tocca un numero libero, lascia i tuoi dati e la divisa è tua.</p>
+
+  <header class="site-head">
+    <span class="crest"><svg class="leo" viewBox="0 0 100 100" aria-hidden="true"><use href="#leone"></use></svg>Green Lions</span>
+    <h1>Green Lions</h1>
+    <p class="lede">Tutto quello che serve alla squadra in un posto solo. Scegli dove andare.</p>
   </header>
 
-  <div class="bar">
-    <div class="count" id="count"><b>—</b> divise libere</div>
-    <div class="legend">
-      <span><i class="free"></i>libera</span>
-      <span><i class="taken"></i>presa</span>
-    </div>
-  </div>
+  <nav class="cards" aria-label="Pagine del sito">
 
-  <div class="grid skel" id="grid"></div>
+    <a class="card" href="/divise/">
+      <span class="card-ico"><svg viewBox="0 0 34 30" aria-hidden="true"><use href="#maglia"></use></svg></span>
+      <span class="card-txt">
+        <span class="card-title">Divise <span class="badge">aperta</span></span>
+        <span class="card-desc">Scegli il tuo numero e prenota la divisa. Chi prima arriva, prima prende.</span>
+      </span>
+      <span class="card-go" aria-hidden="true">→</span>
+    </a>
 
-  <p class="note" id="note"></p>
+    <a class="card is-soon" href="/squadra/">
+      <span class="card-ico"><svg viewBox="0 0 34 30" aria-hidden="true"><use href="#persone"></use></svg></span>
+      <span class="card-txt">
+        <span class="card-title">Squadra e staff <span class="badge soon">in arrivo</span></span>
+        <span class="card-desc">Giocatori, ruoli, numeri di maglia e chi allena.</span>
+      </span>
+      <span class="card-go" aria-hidden="true">→</span>
+    </a>
 
-  <footer>I dati servono solo per ordinare e consegnare le divise.</footer>
+    <a class="card is-soon" href="/calendario/">
+      <span class="card-ico"><svg viewBox="0 0 34 30" aria-hidden="true"><use href="#calendario"></use></svg></span>
+      <span class="card-txt">
+        <span class="card-title">Calendario e risultati <span class="badge soon">in arrivo</span></span>
+        <span class="card-desc">Partite, orari, campo e come è andata a finire.</span>
+      </span>
+      <span class="card-go" aria-hidden="true">→</span>
+    </a>
+
+  </nav>
+
+  <p class="note">Se sei arrivato qui dal link mandato nel gruppo per le divise, la griglia dei numeri è nella pagina <a href="/divise/">Divise</a>: da lì si prenota come prima.</p>
+
+  <footer class="site-footer">Green Lions</footer>
+
 </div>
 
-<dialog id="dlg">
-  <div class="testata"></div>
-
-  <form class="sheet" id="form" novalidate>
-    <h2>Prenota la divisa</h2>
-    <p class="pick">
-      <svg class="jersey" id="pickJersey"><use href="#maglia"></use></svg>
-      <b id="pickNum">—</b><span id="pickSub"></span>
-    </p>
-
-    <div class="msg err" id="err"></div>
-
-    <div class="row">
-      <label><span>Nome</span><input name="nome" autocomplete="given-name" required maxlength="60"></label>
-      <label><span>Cognome</span><input name="cognome" autocomplete="family-name" required maxlength="60"></label>
-    </div>
-    <label><span>Email</span><input name="email" type="email" autocomplete="email" required maxlength="120" inputmode="email"></label>
-    <label><span>Cellulare</span><input name="telefono" type="tel" autocomplete="tel" required maxlength="25" inputmode="tel"></label>
-    <label><span>Indirizzo di consegna</span><textarea name="indirizzo" autocomplete="street-address" required maxlength="200" placeholder="Via, numero civico, CAP, città"></textarea></label>
-    <label><span>Codice squadra</span><input name="codice" required maxlength="40" autocapitalize="characters" placeholder="quello scritto nel gruppo"></label>
-
-    <label class="consent">
-      <input type="checkbox" id="consent" required>
-      <span>Acconsento all'uso dei miei dati per l'ordine e la consegna della divisa.</span>
-    </label>
-
-    <div class="actions">
-      <button type="button" class="btn ghost" id="cancel">Annulla</button>
-      <button type="submit" class="btn primary" id="send">Prenota</button>
-    </div>
-  </form>
-
-  <div class="done" id="done" hidden>
-    <svg class="jersey" id="doneJersey"><use href="#maglia"></use></svg>
-    <h2>Numero <span id="doneNum"></span> è tuo</h2>
-    <p id="doneSub"></p>
-    <button type="button" class="btn primary" id="close2">Chiudi</button>
-  </div>
-</dialog>
-
-<script>
-/* ============================================================
-   CONFIGURAZIONE — le uniche righe da modificare
-   ============================================================
-   Le trovi in Supabase: Project Settings > API Keys
-   (la chiave pubblica si chiama "anon public" oppure "publishable")
-*/
-const SUPABASE_URL = "https://czgmdmtnxnaxowadfdfv.supabase.co";       // es. https://abcdxyz.supabase.co
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN6Z21kbXRueG5heG93YWRmZGZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjYyMzksImV4cCI6MjEwMzMwMjIzOX0.31uDHJbVvdSL0j2dQVGM9ApigtjX9G1w6V6ODmpOyMA";    // chiave pubblica, MAI la "service_role"
-
-const SQUADRA = "GREEN LIONS";                // testo del bollino giallo in alto
-/* ========================================================== */
-
-const KITS = [
-  { n: 1,  p: 1,  gk: true },
-  { n: 3,  p: 3 },
-  { n: 4,  p: 4 },
-  { n: 5,  p: 5 },
-  { n: 6,  p: 6 },
-  { n: 7,  p: 7 },
-  { n: 8,  p: 8 },
-  { n: 9,  p: 9 },
-  { n: 10, p: 14 },
-  { n: 11, p: 11 },
-  { n: 13, p: 13 },
-  { n: 15, p: 15 },
-  { n: 16, p: 16 },
-  { n: 17, p: 17 },
-  { n: 19, p: 19 },
-  { n: 20, p: 20 },
-  { n: 22, p: 18 }
-];
-
-const grid    = document.getElementById('grid');
-const dlg     = document.getElementById('dlg');
-const form    = document.getElementById('form');
-const done    = document.getElementById('done');
-const errBox  = document.getElementById('err');
-const sendBtn = document.getElementById('send');
-
-// Tolgo la barra finale e un eventuale /rest/v1 incollato per sbaglio:
-// senza questo l'indirizzo diventa "//rest/v1/..." e Supabase risponde 404.
-const BASE = SUPABASE_URL.trim().replace(/\/+$/, '').replace(/\/rest\/v1$/, '');
-const CHIAVE = SUPABASE_KEY.trim();
-const AUTH = { apikey: CHIAVE, Authorization: 'Bearer ' + CHIAVE };
-
-const configurato = !SUPABASE_URL.startsWith('INCOLLA');
-let presi = new Map();
-let scelto = null;
-let guasto = null;
-
-document.getElementById('crest').textContent = SQUADRA;
-
-function sottotitolo(k) {
-  if (k.gk) return 'PORTIERE · p. 1';
-  return 'pant. ' + k.p;
-}
-
-function vestiIcona(el, k) {
-  el.style.setProperty('--maglia', k.gk ? 'var(--kit-bianco)'  : 'var(--kit-giallo)');
-  el.style.setProperty('--trim',   k.gk ? 'var(--kit-azzurro)' : 'var(--kit-verde)');
-}
-
-function render() {
-  grid.classList.remove('skel');
-  grid.innerHTML = '';
-  for (const k of KITS) {
-    const preso = presi.has(k.n);
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'kit';
-    if (preso) b.dataset.taken = '';
-    if (k.gk)  b.dataset.gk = '';
-    b.disabled = preso;
-    b.innerHTML =
-      '<svg class="jersey"><use href="#maglia"></use></svg>' +
-      '<span class="num"></span><span class="sub"></span><span class="state"></span>';
-    b.querySelector('.num').textContent = k.n;
-    b.querySelector('.sub').textContent = sottotitolo(k);
-    b.querySelector('.state').textContent = preso ? (presi.get(k.n) || 'preso') : 'libero';
-    b.setAttribute('aria-label',
-      'Numero ' + k.n + ', pantaloncini ' + k.p + (k.gk ? ', divisa da portiere' : '') +
-      ', ' + (preso ? 'già preso' : 'libero'));
-    if (!preso) b.addEventListener('click', () => apri(k));
-    grid.appendChild(b);
-  }
-
-  const liberi = KITS.length - presi.size;
-  document.getElementById('count').innerHTML =
-    '<b>' + liberi + '</b> divis' + (liberi === 1 ? 'a libera' : 'e libere') + ' su ' + KITS.length;
-
-  const note = document.getElementById('note');
-  if (!configurato) {
-    note.textContent = '⚠ Pagina non ancora collegata al database: apri index.html e compila SUPABASE_URL e SUPABASE_KEY.';
-  } else if (guasto) {
-    note.textContent = '⚠ Non riesco a leggere le prenotazioni dal database (' + guasto +
-      '). I numeri qui sopra potrebbero non essere aggiornati: apri diagnostica.html per capire cosa manca.';
-  } else {
-    note.textContent = 'Ogni maglia ha i suoi pantaloncini. Le uniche due eccezioni sono la 10, che va con i pantaloncini 14, e la 22, che va con i 18: i numeri dei pantaloncini disponibili non coincidevano del tutto.';
-  }
-}
-
-function apri(k) {
-  scelto = k;
-  form.hidden = false;
-  done.hidden = true;
-  errBox.classList.remove('show');
-  document.getElementById('pickNum').textContent = k.n;
-  document.getElementById('pickSub').textContent = k.gk ? 'divisa da portiere · pant. 1' : 'pantaloncini ' + k.p;
-  vestiIcona(document.getElementById('pickJersey'), k);
-  vestiIcona(document.getElementById('doneJersey'), k);
-  dlg.showModal();
-  form.querySelector('[name=nome]').focus();
-}
-
-function errore(t) {
-  errBox.textContent = t;
-  errBox.classList.add('show');
-  errBox.scrollIntoView({ block: 'nearest' });
-}
-
-async function carica() {
-  if (!configurato) { render(); return; }
-  try {
-    const r = await fetch(BASE + '/rest/v1/kit_presi?select=numero,nome', { headers: AUTH });
-    if (r.status === 404) throw new Error('la tabella non esiste su questo progetto (404)');
-    if (r.status === 401 || r.status === 403) throw new Error('chiave rifiutata (' + r.status + ')');
-    if (!r.ok) throw new Error('risposta ' + r.status);
-    presi = new Map((await r.json()).map(x => [x.numero, x.nome]));
-    guasto = null;
-  } catch (e) {
-    guasto = e.message || 'nessuna risposta';
-    console.error('lettura fallita:', e);
-  }
-  render();
-}
-
-form.addEventListener('submit', async ev => {
-  ev.preventDefault();
-  errBox.classList.remove('show');
-
-  const d = Object.fromEntries(new FormData(form));
-  for (const k in d) d[k] = d[k].trim();
-
-  // questi limiti devono restare identici a quelli della policy sul database,
-  // altrimenti la pagina accetta un dato che poi Supabase respinge
-  if (d.nome.length < 2 || d.cognome.length < 2) return errore('Scrivi nome e cognome per esteso (almeno due lettere ciascuno).');
-  if (d.nome.length > 60 || d.cognome.length > 60) return errore('Nome o cognome troppo lunghi.');
-  if (d.indirizzo.length > 200) return errore('L\'indirizzo è troppo lungo, accorcialo.');
-  if (d.telefono.length > 25) return errore('Il numero di telefono è troppo lungo.');
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(d.email)) return errore('L\'email non sembra valida.');
-  if (d.telefono.replace(/\D/g, '').length < 6) return errore('Il numero di cellulare non sembra valido.');
-  if (d.indirizzo.length < 8) return errore('Scrivi l\'indirizzo completo di città e CAP.');
-  if (!d.codice) return errore('Manca il codice squadra.');
-  if (!document.getElementById('consent').checked) return errore('Serve la spunta sul consenso.');
-
-  if (!configurato) return errore('Pagina in anteprima: il database non è ancora collegato.');
-
-  sendBtn.disabled = true;
-  sendBtn.textContent = 'Un attimo…';
-
-  try {
-    const r = await fetch(BASE + '/rest/v1/prenotazioni', {
-      method: 'POST',
-      headers: { ...AUTH, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ ...d, numero: scelto.n, codice: d.codice.toUpperCase() })
-    });
-
-    if (r.status === 201 || r.status === 204) {
-      presi.set(scelto.n, d.nome);
-      document.getElementById('doneNum').textContent = scelto.n;
-      document.getElementById('doneSub').textContent = scelto.gk
-        ? 'Divisa da portiere bianca, maglia 1 e pantaloncini 1. Riceverai conferma via email.'
-        : 'Maglia ' + scelto.n + ' e pantaloncini ' + scelto.p + '. Riceverai conferma via email.';
-      form.hidden = true;
-      done.hidden = false;
-      form.reset();
-      render();
-      return;
-    }
-
-    const body = await r.json().catch(() => ({}));
-    if (r.status === 409 && String(body.message || '').includes('email_unica')) {
-      errore('Con questa email hai già prenotato una divisa.');
-    } else if (r.status === 409) {
-      errore('Qualcuno ti ha battuto sul tempo: il numero ' + scelto.n + ' è appena stato preso. Chiudi e scegline un altro.');
-      await carica();
-    } else if (r.status === 401 || r.status === 403) {
-      const msg = String(body.message || '');
-      if (/api key/i.test(msg) || /jwt/i.test(msg)) {
-        errore('La pagina non riesce ad autenticarsi con il database: la chiave è sbagliata o scaduta. Avvisa chi ha creato il link, non è colpa tua.');
-      } else {
-        errore('Codice squadra sbagliato. Ricontrolla la parola scritta nel gruppo — maiuscole e minuscole non contano, gli spazi sì.');
-      }
-    } else if (r.status === 404) {
-      errore('Il database non trova la tabella delle prenotazioni: la pagina non è collegata bene. Avvisa chi ha creato il link — deve aprire diagnostica.html.');
-    } else {
-      errore('Non è andata a buon fine (errore ' + r.status + '). Riprova tra poco.');
-    }
-  } catch (e) {
-    errore('Connessione assente. Controlla la rete e riprova.');
-  } finally {
-    sendBtn.disabled = false;
-    sendBtn.textContent = 'Prenota';
-  }
-});
-
-document.getElementById('cancel').onclick = () => dlg.close();
-document.getElementById('close2').onclick = () => dlg.close();
-dlg.addEventListener('close', () => { form.hidden = false; done.hidden = true; });
-
-carica();
-setInterval(() => { if (!dlg.open) carica(); }, 15000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden && !dlg.open) carica(); });
-</script>
 </body>
 </html>

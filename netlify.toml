@@ -1,0 +1,39 @@
+# ============================================================
+#  Green Lions — configurazione del deploy Netlify.
+#
+#  Il sito è fatto di soli file statici: non c'è niente da
+#  compilare, Netlify pubblica la cartella così com'è.
+# ============================================================
+
+[build]
+  publish = "."
+  # nessun comando: non serve build
+
+# ------------------------------------------------------------
+#  Vecchi indirizzi che devono continuare a funzionare
+# ------------------------------------------------------------
+
+# Prima del riordino la pagina divise stava in /DivisePage/
+[[redirects]]
+  from = "/DivisePage/*"
+  to = "/divise/"
+  status = 301
+  force = true
+
+# ------------------------------------------------------------
+#  Intestazioni HTTP
+# ------------------------------------------------------------
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Le immagini non cambiano quasi mai: le tiene in cache una settimana.
+# Se ne sostituisci una e vuoi vederla subito, cambiale nome.
+[[headers]]
+  for = "/assets/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

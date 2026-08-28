@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Green Lions">
+  <path d="M50.0 2.0 L58.1 17.0 L72.3 7.5 L72.5 24.6 L89.5 22.7 L81.8 37.9 L97.7 44.2 L83.8 54.1 L94.9 67.0 L78.0 69.3 L81.8 85.9 L65.8 80.1 L61.5 96.6 L50.0 84.0 L38.5 96.6 L34.2 80.1 L18.2 85.9 L22.0 69.3 L5.1 67.0 L16.2 54.1 L2.3 44.2 L18.2 37.9 L10.5 22.7 L27.5 24.6 L27.7 7.5 L41.9 17.0 Z" style="fill:var(--leo-criniera,#1c7a3e)"/>
+  <circle cx="50" cy="50" r="34" style="fill:var(--leo-criniera,#1c7a3e)"/>
+  <circle cx="29" cy="32" r="8.5" style="fill:var(--leo-faccia,#efc41a)"/>
+  <circle cx="71" cy="32" r="8.5" style="fill:var(--leo-faccia,#efc41a)"/>
+  <circle cx="29" cy="32" r="3.8" style="fill:var(--leo-tratti,#12522a)"/>
+  <circle cx="71" cy="32" r="3.8" style="fill:var(--leo-tratti,#12522a)"/>
+  <circle cx="50" cy="52" r="27" style="fill:var(--leo-faccia,#efc41a)"/>
+  <ellipse cx="39" cy="45" rx="4.4" ry="5.4" style="fill:var(--leo-tratti,#12522a)"/>
+  <ellipse cx="61" cy="45" rx="4.4" ry="5.4" style="fill:var(--leo-tratti,#12522a)"/>
+  <path d="M50 66 L41.5 57.5 L58.5 57.5 Z" style="fill:var(--leo-tratti,#12522a)"/>
+  <path d="M50 66 L50 72" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M50 72 q -7 6 -13 0" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M50 72 q  7 6  13 0" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
+</svg>

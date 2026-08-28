@@ -1,0 +1,9 @@
+# Le pagine da tenere fuori dai motori di ricerca lo dichiarano da sole,
+# con <meta name="robots" content="noindex"> nel loro <head>: oggi sono
+# /divise/, /squadra/ e /calendario/.
+#
+# Volutamente qui NON c'è nessun Disallow: bloccare la scansione di
+# /divise/ impedirebbe anche a WhatsApp e Facebook di leggere il titolo e
+# l'immagine dell'anteprima quando il link viene incollato nel gruppo.
+User-agent: *
+Allow: /

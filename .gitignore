@@ -1,0 +1,14 @@
+# Materiale riservato: schema del database e istruzioni con i codici.
+# Resta sul computer, non finisce su GitHub.
+Confident/
+
+# File di sistema
+.DS_Store
+Thumbs.db
+._*
+
+# Strumenti e chiavi locali
+.netlify/
+.env
+.env.*
+node_modules/
