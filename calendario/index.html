@@ -3,17 +3,74 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- Pagina ancora vuota: il noindex tiene fuori dai motori di ricerca finché
-     non c'è contenuto. Toglilo quando la pagina è pronta. -->
+<!-- Pagina della squadra, non vetrina: il noindex la tiene fuori dai motori
+     di ricerca. Ci si arriva dal link, come per le divise. -->
 <meta name="robots" content="noindex">
 <title>Calendario e risultati · Green Lions</title>
-<meta name="description" content="Le partite dei Green Lions: date, orari, campo e risultati.">
+<meta name="description" content="Le giornate dei Green Lions: quando si gioca, dove, e chi c'è.">
 <meta name="theme-color" content="#1c7a3e">
 
 <link rel="icon" type="image/svg+xml" href="/assets/img/leone.svg">
 <link rel="icon" type="image/png" href="/assets/img/favicon.png">
 <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 <link rel="stylesheet" href="/assets/css/site.css">
+<style>
+  .gruppo { margin: 26px 0 0; }
+  .gruppo > h2 {
+    margin: 0 0 12px; font-size: 12px; font-weight: 800;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3);
+  }
+
+  .giornata {
+    display: grid; grid-template-columns: 58px 1fr; gap: 15px;
+    padding: 15px 17px; margin: 0 0 11px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 5px solid var(--kit-verde); border-radius: var(--radius);
+  }
+  .giornata.passata  { border-left-color: var(--ink-3); }
+  .giornata.annullata { border-left-color: var(--kit-rosso); }
+  .giornata.annullata .titolo { text-decoration: line-through; }
+
+  .quando { text-align: center; padding-top: 2px; }
+  .quando .settimana { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+  .quando .giorno { font-size: 27px; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .quando .mese { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--kit-verde); }
+  @media (prefers-color-scheme: dark) { .quando .mese { color: var(--accent); } }
+
+  .titolo { font-size: 17px; font-weight: 700; letter-spacing: -.012em; margin: 0 0 3px; }
+  .dettaglio { font-size: 13.5px; color: var(--ink-2); margin: 0 0 2px; }
+  .dettaglio .ora { font-weight: 700; color: var(--ink); }
+  .appunto { margin: 7px 0 0; font-size: 13px; color: var(--ink-2); }
+
+  .conteggi { display: flex; flex-wrap: wrap; gap: 7px; margin: 11px 0 0; }
+  .chip {
+    font: 700 11.5px/1 ui-sans-serif, system-ui, sans-serif;
+    padding: 5px 9px; border-radius: 999px;
+    background: var(--surface-2); color: var(--ink-2);
+  }
+  .chip.si    { background: var(--accent-sf); color: var(--kit-verde); }
+  .chip.forse { background: #fdf3d4; color: #8a6a05; }
+  @media (prefers-color-scheme: dark) {
+    .chip.si    { color: var(--accent); }
+    .chip.forse { background: #3a3010; color: #f0d375; }
+  }
+
+  .nomi { margin: 9px 0 0; font-size: 12.5px; color: var(--ink-3); line-height: 1.6; }
+  .nomi b { color: var(--ink-2); font-weight: 600; }
+
+  .azioni-riga { display: flex; flex-wrap: wrap; gap: 8px; margin: 13px 0 0; }
+  .stato-bollo {
+    display: inline-block; margin-left: 8px; vertical-align: 2px;
+    font: 700 10px/1 ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: .09em; text-transform: uppercase;
+    padding: 4px 7px; border-radius: 999px;
+    background: #fbeae9; color: #9d1a24;
+  }
+  @media (prefers-color-scheme: dark) { .stato-bollo { background: #33191b; color: #f0999b; } }
+
+  #esito { margin: 0 0 16px; }
+  .separa { margin: 16px 0 0; padding-top: 15px; border-top: 1px solid var(--line); }
+</style>
 </head>
 <body>
 
@@ -41,24 +98,485 @@
 
   <header class="site-head">
     <span class="crest"><svg class="leo" viewBox="0 0 100 100" aria-hidden="true"><use href="#leone"></use></svg>Green Lions</span>
-    <h1>Calendario e risultati</h1>
-    <p class="lede">Quando si gioca, dove, e come è finita.</p>
+    <h1>Calendario</h1>
+    <p class="lede">Quando si gioca, dove, e chi c'è. Dai la tua disponibilità: se ci sei, ti arriva l'invito da mettere in calendario.</p>
   </header>
 
-  <!-- ============================================================
-       Il contenuto va qui dentro.
-       Per riempirla dai dati di Supabase: importa /assets/js/supabase.js e usa glLeggi('nome_tabella').
-       Le classi disponibili sono in /assets/css/site.css.
-       ============================================================ -->
+  <div class="msg ok" id="esito"></div>
 
-  <div class="pannello">
-    <h2>Pagina in preparazione</h2>
-    <p>Qui finiranno le partite in programma e i risultati di quelle già giocate.</p>
+  <div class="barra">
+    <div class="conto" id="conto"><b>—</b> giornate in programma</div>
+    <button type="button" class="btn ghost piccolo" id="apriNuova">Nuova giornata</button>
   </div>
+
+  <div id="elenco" class="caricamento"></div>
+
+  <p class="note">
+    Per dare la disponibilità devi essere <a href="/squadra/">in rosa</a>: l'invito arriva all'email che hai lasciato lì.
+    Chi ha il codice della squadra può anche creare e modificare le giornate — se una partita cambia orario o campo,
+    l'evento si aggiorna da solo nel calendario di chi aveva accettato.
+  </p>
 
   <footer class="site-footer">Green Lions · <a href="/">torna alla home</a></footer>
 
 </div>
 
+
+<!-- ============ finestra: dare la disponibilità ============ -->
+<dialog id="finestraDisp">
+  <div class="testata"></div>
+  <form class="foglio" id="moduloDisp" novalidate>
+    <h2>Ci sei?</h2>
+    <p class="dettaglio" id="dispQuale"></p>
+
+    <div class="msg err" id="erroreDisp"></div>
+
+    <label><span>Chi sei</span>
+      <select name="giocatore" id="scegliGiocatore" required></select>
+    </label>
+
+    <div class="scelta">
+      <label><input type="radio" name="stato" value="si" checked><span>Ci sono</span></label>
+      <label><input type="radio" name="stato" value="forse"><span>Forse</span></label>
+      <label><input type="radio" name="stato" value="no"><span>Non ci sono</span></label>
+    </div>
+
+    <label><span>Note <small>(facoltativo)</small></span><textarea name="note" maxlength="200" placeholder="Arrivo più tardi, devo andare via prima…"></textarea></label>
+    <label><span>Codice squadra</span><input name="codice" required maxlength="40" autocapitalize="characters" placeholder="quello scritto nel gruppo"></label>
+
+    <div class="azioni">
+      <button type="button" class="btn ghost" id="chiudiDisp">Annulla</button>
+      <button type="submit" class="btn primary" id="confermaDisp">Conferma</button>
+    </div>
+  </form>
+</dialog>
+
+
+<!-- ============ finestra: creare o modificare una giornata ============ -->
+<dialog id="finestraGiornata">
+  <div class="testata"></div>
+  <form class="foglio" id="moduloGiornata" novalidate>
+    <h2 id="titoloFinestra">Nuova giornata</h2>
+
+    <div class="msg err" id="erroreGiornata"></div>
+
+    <label><span>Titolo</span><input name="titolo" required maxlength="80" placeholder="Campionato, 3ª giornata"></label>
+
+    <div class="riga">
+      <label><span>Tipo</span>
+        <select name="tipo">
+          <option value="partita" selected>Partita</option>
+          <option value="allenamento">Allenamento</option>
+          <option value="torneo">Torneo</option>
+          <option value="altro">Altro</option>
+        </select>
+      </label>
+      <label><span>Avversario</span><input name="avversario" maxlength="80" placeholder="solo per le partite"></label>
+    </div>
+
+    <div class="riga">
+      <label><span>Data e ora</span><input name="inizio" type="datetime-local" required></label>
+      <label><span>Durata <small>(minuti)</small></span><input name="durata" type="number" min="15" max="600" step="5" value="90" required inputmode="numeric"></label>
+    </div>
+
+    <label><span>Luogo</span><input name="luogo" required maxlength="80" placeholder="Campo comunale"></label>
+    <label><span>Indirizzo <small>(facoltativo, finisce nell'invito)</small></span><input name="indirizzo" maxlength="160" placeholder="Via dello Sport 12, Lugo"></label>
+    <label><span>Note <small>(facoltativo)</small></span><textarea name="note" maxlength="400" placeholder="Ritrovo un'ora prima…"></textarea></label>
+
+    <label><span>Codice squadra</span><input name="codice" required maxlength="40" autocapitalize="characters"></label>
+
+    <div class="azioni">
+      <button type="button" class="btn ghost" id="chiudiGiornata">Annulla</button>
+      <button type="submit" class="btn primary" id="confermaGiornata">Crea</button>
+    </div>
+
+    <div class="separa" id="zonaAnnulla" hidden>
+      <button type="button" class="btn pericolo piccolo" id="annullaGiornata" style="width:100%">Annulla questa giornata</button>
+      <p class="appunto">Chi aveva accettato riceve la disdetta e l'evento sparisce dal suo calendario.</p>
+    </div>
+  </form>
+</dialog>
+
+<script src="/assets/js/supabase.js"></script>
+<script>
+/* ============================================================
+   Gli orari sono fissati sull'ora italiana, non su quella del
+   telefono: una partita alle 15:30 è alle 15:30 anche per chi
+   apre la pagina con il fuso sbagliato o dall'estero.
+   ============================================================ */
+const FUSO = 'Europe/Rome';
+
+const pezzi = (data) => new Intl.DateTimeFormat('sv-SE', {
+  timeZone: FUSO, year: 'numeric', month: '2-digit', day: '2-digit',
+  hour: '2-digit', minute: '2-digit', hour12: false
+}).formatToParts(data).reduce((acc, p) => (acc[p.type] = p.value, acc), {});
+
+/** Da istante a "2026-09-14T15:30" per il campo data e ora. */
+function perIlModulo(iso) {
+  const p = pezzi(new Date(iso));
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+}
+
+/** Da "2026-09-14T15:30" scritto nel modulo (ora italiana) all'istante vero.
+    Due passate perché lo scarto cambia tra ora solare e ora legale. */
+function dalModulo(valore) {
+  const [g, o] = valore.split('T');
+  const [Y, M, D] = g.split('-').map(Number);
+  const [h, m] = o.split(':').map(Number);
+  const desiderato = Date.UTC(Y, M - 1, D, h, m);
+  let istante = desiderato;
+  for (let i = 0; i < 2; i++) {
+    const p = pezzi(new Date(istante));
+    const letto = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+    istante = istante + (desiderato - letto);
+  }
+  return new Date(istante).toISOString();
+}
+
+const fmt = (iso, opzioni) => new Intl.DateTimeFormat('it-IT', { timeZone: FUSO, ...opzioni }).format(new Date(iso));
+
+/* ---------------- stato della pagina ---------------- */
+
+const elenco = document.getElementById('elenco');
+const esito  = document.getElementById('esito');
+
+const finestraDisp = document.getElementById('finestraDisp');
+const moduloDisp   = document.getElementById('moduloDisp');
+const erroreDisp   = document.getElementById('erroreDisp');
+const confermaDisp = document.getElementById('confermaDisp');
+
+const finestraGiornata = document.getElementById('finestraGiornata');
+const moduloGiornata   = document.getElementById('moduloGiornata');
+const erroreGiornata   = document.getElementById('erroreGiornata');
+const confermaGiornata = document.getElementById('confermaGiornata');
+
+let giornate = [];
+let disponibilita = [];
+let rosa = [];
+document.querySelector('.note').dataset.originale = document.querySelector('.note').innerHTML;
+
+let dispScelta = null;      // giornata per cui si sta rispondendo
+let giornataInModifica = null;
+
+const ETICHETTE = { si: 'ci sono', forse: 'forse', no: 'non ci sono' };
+
+async function carica() {
+  GL_ULTIMO_ERRORE = null;
+  [giornate, disponibilita, rosa] = await Promise.all([
+    glLeggi('calendario_pubblico', 'select=*&order=inizio.asc'),
+    glLeggi('disponibilita_pubblica', 'select=*&order=nome.asc'),
+    glLeggi('rosa_pubblica', 'select=*&order=numero.asc.nullslast,nome.asc')
+  ]);
+  disegna();
+
+  // Meglio dire "non riesco a leggere" che lasciar credere che non ci sia niente.
+  const nota = document.querySelector('.note');
+  if (GL_ULTIMO_ERRORE) {
+    nota.textContent = '⚠ Non riesco a leggere il calendario dal database (' + GL_ULTIMO_ERRORE +
+      '). Quello che vedi qui sopra potrebbe non essere aggiornato.';
+  } else if (nota.dataset.originale) {
+    nota.innerHTML = nota.dataset.originale;
+  }
+}
+
+function nomeGiornata(g) {
+  return (g.tipo === 'partita' && g.avversario) ? 'Green Lions – ' + g.avversario : g.titolo;
+}
+
+function disegna() {
+  elenco.classList.remove('caricamento');
+  elenco.innerHTML = '';
+
+  const adesso = Date.now();
+  const prossime = giornate.filter(g => new Date(g.inizio).getTime() >= adesso);
+  const passate  = giornate.filter(g => new Date(g.inizio).getTime() <  adesso).reverse();
+
+  const inProgramma = prossime.filter(g => g.stato === 'programmata').length;
+  document.getElementById('conto').innerHTML =
+    '<b>' + inProgramma + '</b> ' + (inProgramma === 1 ? 'giornata in programma' : 'giornate in programma');
+
+  if (giornate.length === 0) {
+    elenco.innerHTML = '<p class="vuoto">Non c\'è ancora nessuna giornata. Creane una con il pulsante qui sopra.</p>';
+    return;
+  }
+
+  if (prossime.length) elenco.appendChild(sezione('In programma', prossime, false));
+  if (passate.length)  elenco.appendChild(sezione('Già giocate', passate, true));
+}
+
+function sezione(titolo, lista, passata) {
+  const s = document.createElement('section');
+  s.className = 'gruppo';
+  s.innerHTML = '<h2></h2>';
+  s.querySelector('h2').textContent = titolo;
+  for (const g of lista) s.appendChild(scheda(g, passata));
+  return s;
+}
+
+function scheda(g, passata) {
+  const annullata = g.stato === 'annullata';
+  const risposte = disponibilita.filter(d => d.giornata_id === g.id);
+  const conta = (stato) => risposte.filter(d => d.stato === stato).length;
+
+  const carta = document.createElement('article');
+  carta.className = 'giornata' + (annullata ? ' annullata' : passata ? ' passata' : '');
+
+  carta.innerHTML = `
+    <div class="quando">
+      <div class="settimana"></div>
+      <div class="giorno"></div>
+      <div class="mese"></div>
+    </div>
+    <div class="corpo">
+      <p class="titolo"></p>
+      <p class="dettaglio"><span class="ora"></span> · <span class="luogo"></span></p>
+      <p class="appunto" hidden></p>
+      <div class="conteggi"></div>
+      <p class="nomi" hidden></p>
+      <div class="azioni-riga"></div>
+    </div>`;
+
+  carta.querySelector('.settimana').textContent = fmt(g.inizio, { weekday: 'short' });
+  carta.querySelector('.giorno').textContent    = fmt(g.inizio, { day: 'numeric' });
+  carta.querySelector('.mese').textContent      = fmt(g.inizio, { month: 'short' }).replace('.', '');
+
+  const titolo = carta.querySelector('.titolo');
+  titolo.textContent = nomeGiornata(g);
+  if (annullata) {
+    const bollo = document.createElement('span');
+    bollo.className = 'stato-bollo';
+    bollo.textContent = 'annullata';
+    titolo.appendChild(bollo);
+  }
+
+  carta.querySelector('.ora').textContent = fmt(g.inizio, { hour: '2-digit', minute: '2-digit' });
+  carta.querySelector('.luogo').textContent = g.indirizzo ? g.luogo + ', ' + g.indirizzo : g.luogo;
+
+  if (g.note) {
+    const appunto = carta.querySelector('.appunto');
+    appunto.textContent = g.note;
+    appunto.hidden = false;
+  }
+
+  const conteggi = carta.querySelector('.conteggi');
+  for (const stato of ['si', 'forse', 'no']) {
+    const n = conta(stato);
+    if (!n) continue;
+    const chip = document.createElement('span');
+    chip.className = 'chip ' + stato;
+    chip.textContent = n + ' ' + ETICHETTE[stato];
+    conteggi.appendChild(chip);
+  }
+  if (!risposte.length && !annullata && !passata) {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = 'ancora nessuna risposta';
+    conteggi.appendChild(chip);
+  }
+
+  const dentro = risposte.filter(d => d.stato === 'si' || d.stato === 'forse');
+  if (dentro.length) {
+    const nomi = carta.querySelector('.nomi');
+    nomi.innerHTML = '<b>Ci sono:</b> ' +
+      dentro.map(d => d.nome + ' ' + d.iniziale + (d.stato === 'forse' ? ' (forse)' : '')).join(' · ');
+    nomi.hidden = false;
+  }
+
+  const azioni = carta.querySelector('.azioni-riga');
+  if (!annullata && !passata) {
+    const rispondi = document.createElement('button');
+    rispondi.type = 'button';
+    rispondi.className = 'btn primary piccolo';
+    rispondi.textContent = 'Dai la tua disponibilità';
+    rispondi.onclick = () => apriDisponibilita(g);
+    azioni.appendChild(rispondi);
+
+    const modifica = document.createElement('button');
+    modifica.type = 'button';
+    modifica.className = 'btn ghost piccolo';
+    modifica.textContent = 'Modifica';
+    modifica.onclick = () => apriGiornata(g);
+    azioni.appendChild(modifica);
+  }
+
+  return carta;
+}
+
+/* ---------------- disponibilità ---------------- */
+
+function apriDisponibilita(g) {
+  dispScelta = g;
+  erroreDisp.classList.remove('mostra');
+
+  document.getElementById('dispQuale').textContent =
+    nomeGiornata(g) + ' · ' + fmt(g.inizio, { weekday: 'long', day: 'numeric', month: 'long' }) +
+    ', ore ' + fmt(g.inizio, { hour: '2-digit', minute: '2-digit' });
+
+  const scegli = document.getElementById('scegliGiocatore');
+  scegli.innerHTML = '';
+  if (rosa.length === 0) {
+    scegli.innerHTML = '<option value="">— la rosa è vuota —</option>';
+  } else {
+    scegli.appendChild(new Option('— scegli il tuo nome —', ''));
+    for (const p of rosa) {
+      scegli.appendChild(new Option(
+        p.nome + ' ' + p.iniziale + (p.numero != null ? ' (' + p.numero + ')' : ''), p.id));
+    }
+  }
+
+  finestraDisp.showModal();
+}
+
+moduloDisp.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  erroreDisp.classList.remove('mostra');
+
+  const d = Object.fromEntries(new FormData(moduloDisp));
+  if (!d.giocatore) return erroreIn(erroreDisp, 'Scegli il tuo nome. Se non c\'è, aggiungiti prima alla rosa.');
+  if (!d.codice.trim()) return erroreIn(erroreDisp, 'Manca il codice squadra.');
+
+  confermaDisp.disabled = true;
+  confermaDisp.textContent = 'Un attimo…';
+
+  try {
+    await glChiama('segna_disponibilita', {
+      _codice:       d.codice.trim(),
+      _giornata_id:  dispScelta.id,
+      _giocatore_id: Number(d.giocatore),
+      _stato:        d.stato,
+      _note:         d.note.trim() || null
+    });
+
+    finestraDisp.close();
+    moduloDisp.reset();
+    esito.textContent = d.stato === 'si'
+      ? 'Segnato. A momenti ricevi l\'invito da mettere in calendario.'
+      : d.stato === 'forse'
+        ? 'Segnato come forse: ricevi comunque l\'invito, così non te ne dimentichi.'
+        : 'Segnato: per questa giornata non ci sei.';
+    esito.classList.add('mostra');
+    await carica();
+  } catch (e) {
+    erroreIn(erroreDisp, glMessaggio(e));
+  } finally {
+    confermaDisp.disabled = false;
+    confermaDisp.textContent = 'Conferma';
+  }
+});
+
+/* ---------------- creare e modificare una giornata ---------------- */
+
+function apriGiornata(g) {
+  giornataInModifica = g || null;
+  erroreGiornata.classList.remove('mostra');
+  moduloGiornata.reset();
+
+  document.getElementById('titoloFinestra').textContent = g ? 'Modifica giornata' : 'Nuova giornata';
+  confermaGiornata.textContent = g ? 'Salva e avvisa' : 'Crea';
+  document.getElementById('zonaAnnulla').hidden = !g;
+
+  if (g) {
+    const c = moduloGiornata.elements;
+    c.titolo.value     = g.titolo;
+    c.tipo.value       = g.tipo;
+    c.avversario.value = g.avversario || '';
+    c.inizio.value     = perIlModulo(g.inizio);
+    c.durata.value     = g.durata_min;
+    c.luogo.value      = g.luogo;
+    c.indirizzo.value  = g.indirizzo || '';
+    c.note.value       = g.note || '';
+  }
+
+  finestraGiornata.showModal();
+}
+
+moduloGiornata.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  erroreGiornata.classList.remove('mostra');
+
+  const d = Object.fromEntries(new FormData(moduloGiornata));
+  for (const k in d) d[k] = String(d[k]).trim();
+
+  if (d.titolo.length < 3) return erroreIn(erroreGiornata, GL_MESSAGGI.TITOLO_NON_VALIDO);
+  if (!d.inizio) return erroreIn(erroreGiornata, 'Manca la data e l\'ora.');
+  if (d.luogo.length < 3) return erroreIn(erroreGiornata, GL_MESSAGGI.LUOGO_NON_VALIDO);
+  const durata = Number(d.durata);
+  if (!(durata >= 15 && durata <= 600)) return erroreIn(erroreGiornata, 'La durata va da 15 a 600 minuti.');
+  if (!d.codice) return erroreIn(erroreGiornata, 'Manca il codice squadra.');
+
+  confermaGiornata.disabled = true;
+  confermaGiornata.textContent = 'Un attimo…';
+
+  const dati = {
+    _codice:     d.codice,
+    _titolo:     d.titolo,
+    _inizio:     dalModulo(d.inizio),
+    _luogo:      d.luogo,
+    _tipo:       d.tipo,
+    _avversario: d.avversario || null,
+    _durata_min: durata,
+    _indirizzo:  d.indirizzo || null,
+    _note:       d.note || null
+  };
+
+  try {
+    if (giornataInModifica) {
+      await glChiama('modifica_giornata', { ...dati, _id: giornataInModifica.id });
+      esito.textContent = 'Giornata aggiornata. Chi aveva detto sì o forse riceve la mail con i dati nuovi, e l\'evento gli si aggiorna in calendario.';
+    } else {
+      await glChiama('crea_giornata', dati);
+      esito.textContent = 'Giornata creata. Adesso la squadra può dare la disponibilità.';
+    }
+
+    finestraGiornata.close();
+    moduloGiornata.reset();
+    esito.classList.add('mostra');
+    await carica();
+  } catch (e) {
+    erroreIn(erroreGiornata, glMessaggio(e));
+  } finally {
+    confermaGiornata.disabled = false;
+    confermaGiornata.textContent = giornataInModifica ? 'Salva e avvisa' : 'Crea';
+  }
+});
+
+document.getElementById('annullaGiornata').onclick = async () => {
+  if (!giornataInModifica) return;
+  const codice = moduloGiornata.elements.codice.value.trim();
+  if (!codice) return erroreIn(erroreGiornata, 'Scrivi il codice squadra per annullare.');
+  if (!confirm('Annullare "' + nomeGiornata(giornataInModifica) + '"?\n\nChi aveva accettato riceve la disdetta.')) return;
+
+  try {
+    await glChiama('annulla_giornata', { _codice: codice, _id: giornataInModifica.id });
+    finestraGiornata.close();
+    esito.textContent = 'Giornata annullata. È partita la disdetta a chi aveva accettato.';
+    esito.classList.add('mostra');
+    await carica();
+  } catch (e) {
+    erroreIn(erroreGiornata, glMessaggio(e));
+  }
+};
+
+/* ---------------- utilità ---------------- */
+
+function erroreIn(riquadro, testo) {
+  riquadro.textContent = testo;
+  riquadro.classList.add('mostra');
+  riquadro.scrollIntoView({ block: 'nearest' });
+}
+
+document.getElementById('apriNuova').onclick = () => apriGiornata(null);
+document.getElementById('chiudiDisp').onclick = () => finestraDisp.close();
+document.getElementById('chiudiGiornata').onclick = () => finestraGiornata.close();
+
+carica();
+// se la pagina resta aperta, ogni tanto si riallinea con quello che hanno risposto gli altri
+setInterval(() => {
+  if (!finestraDisp.open && !finestraGiornata.open) carica();
+}, 30000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && !finestraDisp.open && !finestraGiornata.open) carica();
+});
+</script>
 </body>
 </html>

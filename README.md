@@ -6,12 +6,15 @@ programmi installati: si aprono i file con un editor di testo e si salvano.
 
 ## Le pagine
 
-| Indirizzo | File | Stato |
-|---|---|---|
-| `/` | `index.html` | home, elenco delle pagine |
-| `/divise/` | `divise/index.html` | **attiva** — prenotazione delle divise, collegata a Supabase |
-| `/squadra/` | `squadra/index.html` | scheletro da riempire |
-| `/calendario/` | `calendario/index.html` | scheletro da riempire |
+| Indirizzo | Cosa fa |
+|---|---|
+| `/` | home, elenco delle pagine |
+| `/divise/` | prenotazione delle divise: si sceglie un numero libero e si lasciano i dati |
+| `/squadra/` | la rosa. Chi ha il codice della squadra può aggiungersi |
+| `/calendario/` | le giornate. Si dà la disponibilità e arriva l'invito da mettere in calendario; con il codice si creano e si modificano le giornate |
+
+Tutte e tre scrivono su Supabase e chiedono il **codice della squadra** per farlo:
+è quello che mandi nel gruppo. Senza, dal sito non si scrive niente.
 
 ## Com'è organizzata la cartella
 
@@ -24,11 +27,17 @@ programmi installati: si aprono i file con un editor di testo e si salvano.
 ├── calendario/index.html
 ├── assets/
 │   ├── css/site.css      colori e stili comuni
-│   ├── js/supabase.js    lettura del database, per le pagine nuove
+│   ├── js/supabase.js    lettura del database e chiamata alle sue funzioni
 │   └── img/              logo, favicon, immagine per WhatsApp
+├── supabase/
+│   └── functions/invito-calendario/index.ts
+│                         manda l'invito del calendario via mail
 ├── netlify.toml          configurazione del deploy
 └── robots.txt            indicazioni per i motori di ricerca
 ```
+
+`supabase/` non viene pubblicato con il sito: è il codice della funzione che gira
+su Supabase, tenuto qui perché è parte del progetto e non contiene password.
 
 Una cartella con dentro `index.html` diventa un indirizzo pulito:
 `squadra/index.html` si apre come `/squadra/`. Per aggiungere una pagina basta
@@ -74,33 +83,64 @@ grep -rl 'divisegreenlions.netlify.app' --include='*.html' . \
 
 ## Il database
 
-Le divise stanno su [Supabase](https://supabase.com). La pagina legge quali
-numeri sono già presi e scrive le prenotazioni; nome, indirizzo, email e
-telefono non sono leggibili dal sito, si vedono solo dalla dashboard.
+Tutto sta su [Supabase](https://supabase.com): le prenotazioni delle divise, la
+rosa, le giornate e le disponibilità.
 
 La chiave scritta nelle pagine è quella **pubblica** (`anon`): da sola può fare
-soltanto quello che le policy del database permettono, quindi può stare in
-chiaro. La chiave `service_role` non va messa in una pagina web, mai.
+soltanto quello che il database permette, quindi può stare in chiaro. La chiave
+`service_role` non va messa in una pagina web, mai.
 
-Per far leggere una tabella a una pagina nuova serve una vista con il permesso
-di lettura per `anon` (in `Confident/schema.sql` c'è l'esempio di `kit_presi`),
-poi dalla pagina:
+**Le pagine non scrivono mai direttamente nelle tabelle.** Leggono da viste che
+contengono solo quello che può essere pubblico (niente email, niente telefoni,
+del cognome solo l'iniziale) e scrivono chiamando funzioni del database, che
+prima di scrivere controllano il codice della squadra. Il no lo dice il
+database, non la pagina: non si aggira smanettando col browser.
 
 ```html
 <script src="/assets/js/supabase.js"></script>
 <script>
-  glLeggi('nome_vista', 'select=*&order=numero').then(righe => {
-    // ...
-  });
+  const righe = await glLeggi('rosa_pubblica');              // lettura
+  await glChiama('segna_disponibilita', { _codice: '…' });   // scrittura
 </script>
 ```
 
+| Vista (lettura) | Funzione (scrittura) |
+|---|---|
+| `kit_presi` | policy sulla tabella `prenotazioni` |
+| `rosa_pubblica` | `aggiungi_giocatore` |
+| `calendario_pubblico` | `crea_giornata`, `modifica_giornata`, `annulla_giornata` |
+| `disponibilita_pubblica` | `segna_disponibilita` |
+
+### Gli inviti al calendario
+
+Quando un giocatore dice che c'è, gli arriva una mail con l'invito: chi accetta
+se lo ritrova nel proprio calendario. Se poi la partita cambia orario o campo,
+l'evento **si aggiorna da solo** in tutti i calendari di chi aveva accettato, e
+se viene annullata sparisce.
+
+Non è magia di Gmail: ogni giornata ha un identificativo che non cambia mai e un
+contatore che sale a ogni modifica, e i calendari sanno cosa farne (è lo standard
+iCalendar, RFC 5545). Il codice è in `supabase/functions/invito-calendario/`,
+lo fanno partire due webhook del database.
+
+I passi per attivarlo — SQL da eseguire, funzione da caricare, webhook da creare —
+sono in `Confident/ISTRUZIONI-squadra-calendario.md`.
+
 ### La cartella `Confident/`
 
-Contiene lo schema SQL e le istruzioni operative, **codice squadra compreso**.
+Contiene gli schemi SQL e le istruzioni operative, **codice squadra compreso**.
 È esclusa da git (`.gitignore`) e resta solo sul computer: la repository è
-pubblica, quel codice è la sola cosa che impedisce a un estraneo di prenotare
-una divisa. Chi deve metterci mano se la fa passare per un'altra via.
+pubblica, e quel codice è la sola cosa che impedisce a un estraneo di prenotare
+una divisa o di spostare una partita. Chi deve metterci mano se la fa passare
+per un'altra via.
+
+```
+Confident/
+├── schema.sql                          divise
+├── schema-squadra-calendario.sql       rosa, giornate, disponibilità
+├── ISTRUZIONI.md                       come è stata messa online la pagina divise
+└── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
+```
 
 ## Licenza
 

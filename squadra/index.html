@@ -3,17 +3,43 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- Pagina ancora vuota: il noindex tiene fuori dai motori di ricerca finché
-     non c'è contenuto. Toglilo quando la pagina è pronta. -->
+<!-- Pagina della squadra, non vetrina: il noindex la tiene fuori dai motori
+     di ricerca. Ci si arriva dal link, come per le divise. -->
 <meta name="robots" content="noindex">
 <title>Squadra e staff · Green Lions</title>
-<meta name="description" content="I giocatori dei Green Lions, i numeri di maglia e lo staff tecnico.">
+<meta name="description" content="La rosa dei Green Lions: giocatori, ruoli e numeri di maglia.">
 <meta name="theme-color" content="#1c7a3e">
 
 <link rel="icon" type="image/svg+xml" href="/assets/img/leone.svg">
 <link rel="icon" type="image/png" href="/assets/img/favicon.png">
 <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
 <link rel="stylesheet" href="/assets/css/site.css">
+<style>
+  .reparto { margin: 26px 0 0; }
+  .reparto h2 {
+    margin: 0 0 10px; font-size: 12px; font-weight: 800;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .rosa { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .giocatore {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; background: var(--surface);
+    border: 1px solid var(--line); border-left: 4px solid var(--kit-verde);
+    border-radius: 12px;
+  }
+  .numero {
+    flex: none; width: 38px; height: 38px; display: grid; place-items: center;
+    border-radius: 10px; background: var(--kit-giallo); color: var(--kit-verde-s);
+    font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums;
+    box-shadow: inset 0 0 0 2px var(--kit-verde);
+  }
+  /* chi non ha ancora un numero di maglia */
+  .numero.senza { background: var(--surface-2); color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line); font-size: 15px; }
+  .chi { min-width: 0; font-size: 15px; }
+  .chi b { font-weight: 700; }
+  .chi .ruolo { display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 1px; }
+  #esito { margin: 0 0 16px; }
+</style>
 </head>
 <body>
 
@@ -42,23 +68,205 @@
   <header class="site-head">
     <span class="crest"><svg class="leo" viewBox="0 0 100 100" aria-hidden="true"><use href="#leone"></use></svg>Green Lions</span>
     <h1>Squadra e staff</h1>
-    <p class="lede">Chi scende in campo e chi sta in panchina.</p>
+    <p class="lede">Chi scende in campo e chi sta in panchina. Se non ci sei ancora, aggiungiti: serve solo il codice della squadra.</p>
   </header>
 
-  <!-- ============================================================
-       Il contenuto va qui dentro.
-       Per riempirla dai dati di Supabase: importa /assets/js/supabase.js e usa glLeggi('nome_tabella').
-       Le classi disponibili sono in /assets/css/site.css.
-       ============================================================ -->
+  <div class="msg ok" id="esito"></div>
 
-  <div class="pannello">
-    <h2>Pagina in preparazione</h2>
-    <p>Qui finiranno i giocatori con ruolo e numero di maglia, e lo staff tecnico.</p>
+  <div class="barra">
+    <div class="conto" id="conto"><b>—</b> in rosa</div>
+    <button type="button" class="btn primary piccolo" id="apriAggiungi">Aggiungiti alla rosa</button>
   </div>
+
+  <div id="elenco" class="caricamento"></div>
+
+  <p class="note" id="nota">Email e telefono servono per gli inviti alle partite e non compaiono da nessuna parte sul sito: si vedono solo dalla gestione.</p>
 
   <footer class="site-footer">Green Lions · <a href="/">torna alla home</a></footer>
 
 </div>
 
+<dialog id="finestra">
+  <div class="testata"></div>
+  <form class="foglio" id="modulo" novalidate>
+    <h2>Aggiungiti alla rosa</h2>
+
+    <div class="msg err" id="errore"></div>
+
+    <div class="riga">
+      <label><span>Nome</span><input name="nome" autocomplete="given-name" required maxlength="60"></label>
+      <label><span>Cognome</span><input name="cognome" autocomplete="family-name" required maxlength="60"></label>
+    </div>
+
+    <label><span>Email</span><input name="email" type="email" autocomplete="email" required maxlength="120" inputmode="email"></label>
+    <label><span>Cellulare <small>(facoltativo)</small></span><input name="telefono" type="tel" autocomplete="tel" maxlength="25" inputmode="tel"></label>
+
+    <div class="riga">
+      <label><span>Ruolo</span>
+        <select name="ruolo">
+          <option value="portiere">Portiere</option>
+          <option value="difensore">Difensore</option>
+          <option value="centrocampista">Centrocampista</option>
+          <option value="attaccante">Attaccante</option>
+          <option value="giocatore" selected>Giocatore</option>
+          <option value="allenatore">Allenatore</option>
+          <option value="staff">Staff</option>
+        </select>
+      </label>
+      <label><span>Numero <small>(se ce l'hai)</small></span><input name="numero" type="number" min="1" max="99" inputmode="numeric"></label>
+    </div>
+
+    <label><span>Codice squadra</span><input name="codice" required maxlength="40" autocapitalize="characters" placeholder="quello scritto nel gruppo"></label>
+
+    <label class="consenso">
+      <input type="checkbox" id="consenso" required>
+      <span>Acconsento all'uso di email e telefono per gli inviti e le comunicazioni della squadra.</span>
+    </label>
+
+    <div class="azioni">
+      <button type="button" class="btn ghost" id="annulla">Annulla</button>
+      <button type="submit" class="btn primary" id="conferma">Aggiungimi</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/assets/js/supabase.js"></script>
+<script>
+/* I reparti nell'ordine in cui si legge una formazione. */
+const REPARTI = [
+  ['portiere',       'Portieri'],
+  ['difensore',      'Difensori'],
+  ['centrocampista', 'Centrocampisti'],
+  ['attaccante',     'Attaccanti'],
+  ['giocatore',      'Giocatori'],
+  ['allenatore',     'Allenatore'],
+  ['staff',          'Staff']
+];
+
+const elenco   = document.getElementById('elenco');
+const finestra = document.getElementById('finestra');
+const modulo   = document.getElementById('modulo');
+const errore   = document.getElementById('errore');
+const esito    = document.getElementById('esito');
+const conferma = document.getElementById('conferma');
+
+let rosa = [];
+
+const NOTA_NORMALE = document.getElementById('nota').textContent;
+
+async function carica() {
+  GL_ULTIMO_ERRORE = null;
+  rosa = await glLeggi('rosa_pubblica', 'select=*&order=numero.asc.nullslast,nome.asc');
+  disegna();
+  avvisaSeRotto();
+}
+
+/* Meglio dire "non riesco a leggere" che lasciar credere che la rosa sia vuota. */
+function avvisaSeRotto() {
+  const nota = document.getElementById('nota');
+  if (GL_ULTIMO_ERRORE) {
+    nota.textContent = '⚠ Non riesco a leggere la rosa dal database (' + GL_ULTIMO_ERRORE +
+      '). Quello che vedi qui sopra potrebbe non essere aggiornato.';
+  } else {
+    nota.textContent = NOTA_NORMALE;
+  }
+}
+
+function disegna() {
+  elenco.classList.remove('caricamento');
+  elenco.innerHTML = '';
+
+  document.getElementById('conto').innerHTML =
+    '<b>' + rosa.length + '</b> ' + (rosa.length === 1 ? 'persona in rosa' : 'in rosa');
+
+  if (rosa.length === 0) {
+    elenco.innerHTML = '<p class="vuoto">La rosa è ancora vuota. Il primo che si aggiunge apre le danze.</p>';
+    return;
+  }
+
+  for (const [ruolo, titolo] of REPARTI) {
+    const dentro = rosa.filter(g => g.ruolo === ruolo);
+    if (dentro.length === 0) continue;
+
+    const sezione = document.createElement('section');
+    sezione.className = 'reparto';
+    sezione.innerHTML = '<h2></h2><ul class="rosa"></ul>';
+    sezione.querySelector('h2').textContent = titolo;
+
+    const lista = sezione.querySelector('ul');
+    for (const g of dentro) {
+      const voce = document.createElement('li');
+      voce.className = 'giocatore';
+      voce.innerHTML = '<span class="numero"></span><span class="chi"><b></b> <span class="cognome"></span><span class="ruolo"></span></span>';
+      const numero = voce.querySelector('.numero');
+      numero.textContent = g.numero ?? '–';
+      if (g.numero == null) numero.classList.add('senza');
+      voce.querySelector('b').textContent = g.nome;
+      voce.querySelector('.cognome').textContent = g.iniziale;
+      voce.querySelector('.ruolo').textContent = g.ruolo;
+      lista.appendChild(voce);
+    }
+    elenco.appendChild(sezione);
+  }
+}
+
+function mostraErrore(testo) {
+  errore.textContent = testo;
+  errore.classList.add('mostra');
+  errore.scrollIntoView({ block: 'nearest' });
+}
+
+document.getElementById('apriAggiungi').onclick = () => {
+  errore.classList.remove('mostra');
+  finestra.showModal();
+  modulo.querySelector('[name=nome]').focus();
+};
+document.getElementById('annulla').onclick = () => finestra.close();
+
+modulo.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  errore.classList.remove('mostra');
+
+  const d = Object.fromEntries(new FormData(modulo));
+  for (const k in d) d[k] = d[k].trim();
+
+  // gli stessi limiti che controlla il database: se qui passa
+  // qualcosa che là viene rifiutato, l'utente vede un errore oscuro
+  if (d.nome.length < 2 || d.cognome.length < 2) return mostraErrore(GL_MESSAGGI.NOME_NON_VALIDO);
+  if (d.nome.length > 60 || d.cognome.length > 60) return mostraErrore('Nome o cognome troppo lunghi.');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(d.email)) return mostraErrore(GL_MESSAGGI.EMAIL_NON_VALIDA);
+  if (d.numero && (Number(d.numero) < 1 || Number(d.numero) > 99)) return mostraErrore('Il numero di maglia va da 1 a 99.');
+  if (!d.codice) return mostraErrore('Manca il codice squadra.');
+  if (!document.getElementById('consenso').checked) return mostraErrore('Serve la spunta sul consenso.');
+
+  conferma.disabled = true;
+  conferma.textContent = 'Un attimo…';
+
+  try {
+    await glChiama('aggiungi_giocatore', {
+      _codice:   d.codice,
+      _nome:     d.nome,
+      _cognome:  d.cognome,
+      _email:    d.email,
+      _ruolo:    d.ruolo,
+      _numero:   d.numero ? Number(d.numero) : null,
+      _telefono: d.telefono || null
+    });
+
+    finestra.close();
+    modulo.reset();
+    esito.textContent = 'Ci sei: ' + d.nome + ' è in rosa. Da adesso puoi dare la disponibilità per le giornate del calendario.';
+    esito.classList.add('mostra');
+    await carica();
+  } catch (e) {
+    mostraErrore(glMessaggio(e));
+  } finally {
+    conferma.disabled = false;
+    conferma.textContent = 'Aggiungimi';
+  }
+});
+
+carica();
+</script>
 </body>
 </html>
