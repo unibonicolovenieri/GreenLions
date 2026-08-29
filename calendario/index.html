@@ -175,7 +175,8 @@
     </div>
 
     <div class="riga">
-      <label><span>Data e ora</span><input name="inizio" type="datetime-local" required></label>
+      <label><span>Data e ora</span><input name="inizio" type="datetime-local" required
+        min="2020-01-01T00:00" max="2100-12-31T23:59"></label>
       <label><span>Durata <small>(minuti)</small></span><input name="durata" type="number" min="15" max="600" step="5" value="90" required inputmode="numeric"></label>
     </div>
 
@@ -190,9 +191,15 @@
       <button type="submit" class="btn primary" id="confermaGiornata">Crea</button>
     </div>
 
-    <div class="separa" id="zonaAnnulla" hidden>
-      <button type="button" class="btn pericolo piccolo" id="annullaGiornata" style="width:100%">Annulla questa giornata</button>
-      <p class="appunto">Chi aveva accettato riceve la disdetta e l'evento sparisce dal suo calendario.</p>
+    <div class="separa" id="zonaGestione" hidden>
+      <div id="bloccoAnnulla">
+        <button type="button" class="btn pericolo piccolo" id="annullaGiornata" style="width:100%">Annulla questa giornata</button>
+        <p class="appunto">Resta nell'elenco, segnata come annullata. Chi aveva accettato riceve la disdetta e l'evento gli sparisce dal calendario.</p>
+      </div>
+      <div id="bloccoElimina" style="margin-top:14px">
+        <button type="button" class="btn pericolo piccolo" id="eliminaGiornata" style="width:100%">Elimina definitivamente</button>
+        <p class="appunto">La toglie dal sito, come se non fosse mai esistita. Si può solo se nessuno ce l'ha in calendario, o se è già annullata.</p>
+      </div>
     </div>
   </form>
 </dialog>
@@ -383,6 +390,8 @@ function scheda(g, passata) {
   }
 
   const azioni = carta.querySelector('.azioni-riga');
+
+  // La disponibilità si dà solo per quello che deve ancora succedere.
   if (!annullata && !passata) {
     const rispondi = document.createElement('button');
     rispondi.type = 'button';
@@ -390,14 +399,17 @@ function scheda(g, passata) {
     rispondi.textContent = 'Dai la tua disponibilità';
     rispondi.onclick = () => apriDisponibilita(g);
     azioni.appendChild(rispondi);
-
-    const modifica = document.createElement('button');
-    modifica.type = 'button';
-    modifica.className = 'btn ghost piccolo';
-    modifica.textContent = 'Modifica';
-    modifica.onclick = () => apriGiornata(g);
-    azioni.appendChild(modifica);
   }
+
+  // La gestione invece serve sempre: se sbagli l'anno, la giornata finisce
+  // tra le passate, e senza questo pulsante non ci sarebbe più modo di
+  // correggerla o di toglierla di mezzo.
+  const gestisci = document.createElement('button');
+  gestisci.type = 'button';
+  gestisci.className = 'btn ghost piccolo';
+  gestisci.textContent = (annullata || passata) ? 'Correggi o elimina' : 'Modifica';
+  gestisci.onclick = () => apriGiornata(g);
+  azioni.appendChild(gestisci);
 
   return carta;
 }
@@ -473,7 +485,9 @@ function apriGiornata(g) {
 
   document.getElementById('titoloFinestra').textContent = g ? 'Modifica giornata' : 'Nuova giornata';
   confermaGiornata.textContent = g ? 'Salva e avvisa' : 'Crea';
-  document.getElementById('zonaAnnulla').hidden = !g;
+  document.getElementById('zonaGestione').hidden = !g;
+  // una giornata già annullata non si annulla due volte
+  if (g) document.getElementById('bloccoAnnulla').hidden = g.stato === 'annullata';
 
   if (g) {
     const c = moduloGiornata.elements;
@@ -499,10 +513,22 @@ moduloGiornata.addEventListener('submit', async ev => {
 
   if (d.titolo.length < 3) return erroreIn(erroreGiornata, GL_MESSAGGI.TITOLO_NON_VALIDO);
   if (!d.inizio) return erroreIn(erroreGiornata, 'Manca la data e l\'ora.');
+
+  // Il campo data e ora accetta qualunque anno, anche 1620 battuto per sbaglio:
+  // una giornata così finisce tra le passate e sembra sparita.
+  const anno = Number(d.inizio.slice(0, 4));
+  if (!(anno >= 2020 && anno <= 2100)) {
+    return erroreIn(erroreGiornata, 'L\'anno ' + anno + ' non sembra giusto. Ricontrolla la data.');
+  }
   if (d.luogo.length < 3) return erroreIn(erroreGiornata, GL_MESSAGGI.LUOGO_NON_VALIDO);
   const durata = Number(d.durata);
   if (!(durata >= 15 && durata <= 600)) return erroreIn(erroreGiornata, 'La durata va da 15 a 600 minuti.');
   if (!d.codice) return erroreIn(erroreGiornata, 'Manca il codice squadra.');
+
+  const istante = dalModulo(d.inizio);
+  // una partita già giocata si può registrare, ma è quasi sempre un errore
+  if (!giornataInModifica && new Date(istante) < new Date() &&
+      !confirm('La data che hai messo è già passata.\n\nLa creo lo stesso?')) return;
 
   confermaGiornata.disabled = true;
   confermaGiornata.textContent = 'Un attimo…';
@@ -510,7 +536,7 @@ moduloGiornata.addEventListener('submit', async ev => {
   const dati = {
     _codice:     d.codice,
     _titolo:     d.titolo,
-    _inizio:     dalModulo(d.inizio),
+    _inizio:     istante,
     _luogo:      d.luogo,
     _tipo:       d.tipo,
     _avversario: d.avversario || null,
@@ -539,6 +565,23 @@ moduloGiornata.addEventListener('submit', async ev => {
     confermaGiornata.textContent = giornataInModifica ? 'Salva e avvisa' : 'Crea';
   }
 });
+
+document.getElementById('eliminaGiornata').onclick = async () => {
+  if (!giornataInModifica) return;
+  const codice = moduloGiornata.elements.codice.value.trim();
+  if (!codice) return erroreIn(erroreGiornata, 'Scrivi il codice squadra per eliminare.');
+  if (!confirm('Eliminare "' + nomeGiornata(giornataInModifica) + '"?\n\nSparisce dal sito e non si recupera.')) return;
+
+  try {
+    await glChiama('elimina_giornata', { _codice: codice, _id: giornataInModifica.id });
+    finestraGiornata.close();
+    esito.textContent = 'Giornata eliminata.';
+    esito.classList.add('mostra');
+    await carica();
+  } catch (e) {
+    erroreIn(erroreGiornata, glMessaggio(e));
+  }
+};
 
 document.getElementById('annullaGiornata').onclick = async () => {
   if (!giornataInModifica) return;

@@ -167,6 +167,38 @@ function costruisciICS(g: Giornata, destinatario: Giocatore, metodo: "REQUEST" |
 
 /* ---------- la mail ---------- */
 
+/**
+ * Riduce un testo al solo ASCII, per l'oggetto e per i nomi.
+ *
+ * Serve per aggirare un difetto di denomailer. Quando trova un
+ * accento nell'oggetto (o nel nome di un destinatario) prova a
+ * codificarlo secondo l'RFC 2047, ma sbaglia in due modi: lascia
+ * gli spazi letterali e spezza la riga con "=\r\n". Dentro un
+ * "encoded-word" nessuna delle due è ammessa, e nessun client
+ * riesce più a decodificare. Si vede così:
+ *
+ *   =?utf-8?Q?Aggiornata: Green Lions =e2=80=93 SMAMA =e2=80=94 me...
+ *
+ * Ricodificarlo bene per conto nostro non funziona: la libreria
+ * riavvolge in un secondo encoded-word tutto ciò che comincia per
+ * "=?" (vedi quotedPrintableEncodeInline in config/mail/encoding.ts).
+ * L'unica strada affidabile è non darle niente da codificare:
+ * un testo ASCII lo lascia passare intatto.
+ *
+ * Riguarda solo le intestazioni. Il corpo del messaggio e
+ * l'allegato .ics non passano di qui e tengono i loro accenti.
+ */
+function soloAscii(testo: string): string {
+  return testo
+    .replace(/[\u2010-\u2015]/g, "-")                  // – — ‒ ‐
+    .replace(/[\u2018\u2019]/g, "'")                    // ' '
+    .replace(/[\u201C\u201D]/g, '"')                    // " "
+    .replace(/[\u00B7\u2022]/g, "-")                    // · •
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")   // à -> a, ì -> i
+    .replace(/[^\x20-\x7E]/g, "")                       // quel che resta fuori
+    .replace(/\s+/g, " ").trim();
+}
+
 const dataItaliana = (iso: string) =>
   new Date(iso).toLocaleString("it-IT", {
     timeZone: "Europe/Rome",
@@ -177,14 +209,28 @@ const dataItaliana = (iso: string) =>
     minute: "2-digit",
   });
 
+/** "mer 2 set, 20:30" — l'italiano abbreviato non ha accenti, comodo per l'oggetto. */
+const dataBreve = (iso: string) =>
+  new Date(iso).toLocaleString("it-IT", {
+    timeZone: "Europe/Rome",
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
 function componiMail(g: Giornata, dest: Giocatore, metodo: "REQUEST" | "CANCEL", aggiornamento: boolean) {
   const titolo = titoloEsteso(g);
   const quando = dataItaliana(g.inizio);
   const dove = g.indirizzo ? `${g.luogo}, ${g.indirizzo}` : g.luogo;
 
+  // l'oggetto viaggia in un'intestazione: solo ASCII (vedi soloAscii)
+  const oggettoData = dataBreve(g.inizio);
+
   if (metodo === "CANCEL") {
     return {
-      oggetto: `Annullata: ${titolo} — ${quando}`,
+      oggetto: soloAscii(`Annullata: ${titolo} - ${oggettoData}`),
       testo: `Ciao ${dest.nome},\n\n${titolo} del ${quando} non si fa più.\n` +
         `L'evento sparisce da solo dal tuo calendario.\n\n${SITO_URL}/calendario/\n`,
       html: `<p>Ciao ${dest.nome},</p><p><b>${titolo}</b> del ${quando} <b>non si fa più</b>.
@@ -198,7 +244,7 @@ function componiMail(g: Giornata, dest: Giocatore, metodo: "REQUEST" | "CANCEL",
     : `Ci sei per ${titolo}. Ecco il promemoria:`;
 
   return {
-    oggetto: `${aggiornamento ? "Aggiornata: " : ""}${titolo} — ${quando}`,
+    oggetto: soloAscii(`${aggiornamento ? "Aggiornata: " : ""}${titolo} - ${oggettoData}`),
     testo: `Ciao ${dest.nome},\n\n${apertura}\n\nQuando: ${quando}\nDove: ${dove}\n` +
       `${g.note ? `\nNote: ${g.note}\n` : ""}\n${SITO_URL}/calendario/\n`,
     html: `<p>Ciao ${dest.nome},</p><p>${apertura}</p>
@@ -237,8 +283,8 @@ async function spedisci(
       const mail = componiMail(giornata, dest, metodo, aggiornamento);
       try {
         await client.send({
-          from: `${SQUADRA} <${GMAIL_USER}>`,
-          to: `${dest.nome} ${dest.cognome} <${dest.email}>`,
+          from: `${soloAscii(SQUADRA)} <${GMAIL_USER}>`,
+          to: `${soloAscii(dest.nome + " " + dest.cognome)} <${dest.email}>`,
           subject: mail.oggetto,
           content: mail.testo,
           html: mail.html,

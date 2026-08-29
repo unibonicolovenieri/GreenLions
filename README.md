@@ -108,7 +108,7 @@ database, non la pagina: non si aggira smanettando col browser.
 |---|---|
 | `kit_presi` | policy sulla tabella `prenotazioni` |
 | `rosa_pubblica` | `aggiungi_giocatore` |
-| `calendario_pubblico` | `crea_giornata`, `modifica_giornata`, `annulla_giornata` |
+| `calendario_pubblico` | `crea_giornata`, `modifica_giornata`, `annulla_giornata`, `elimina_giornata` |
 | `disponibilita_pubblica` | `segna_disponibilita` |
 
 ### Gli inviti al calendario
@@ -138,6 +138,7 @@ per un'altra via.
 Confident/
 ├── schema.sql                          divise
 ├── schema-squadra-calendario.sql       rosa, giornate, disponibilità
+├── aggiornamento-1-elimina-giornata.sql
 ├── ISTRUZIONI.md                       come è stata messa online la pagina divise
 └── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
 ```
