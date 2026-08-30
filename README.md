@@ -12,10 +12,19 @@ programmi installati: si aprono i file con un editor di testo e si salvano.
 | `/divise/` | prenotazione delle divise: si sceglie un numero libero e si lasciano i dati |
 | `/squadra/` | la rosa. Chi ha il codice della squadra può aggiungersi |
 | `/calendario/` | le giornate. Si dà la disponibilità e arriva l'invito da mettere in calendario; con il codice si creano e si modificano le giornate |
-| `/regolamento/` | le regole del campionato. Per ora c'è solo il vincolo sui tesserati ANSPI |
+| `/classifica/` | i tre gironi con punti e differenza reti, e i risultati |
+| `/regolamento/` | le regole del campionato e come si arriva alla finale |
 
-Tutte e tre scrivono su Supabase e chiedono il **codice della squadra** per farlo:
-è quello che mandi nel gruppo. Senza, dal sito non si scrive niente.
+Tutte scrivono su Supabase e chiedono un codice per farlo. I codici sono **due**:
+
+- il **codice squadra**, che gira nel gruppo: entrare in rosa, dare la
+  disponibilità, segnare le tessere, stampare la distinta;
+- il **codice di gestione**, che ha solo chi gestisce: creare, modificare,
+  annullare ed eliminare una giornata, sollecitare chi non ha risposto,
+  inserire i risultati.
+
+Il codice di gestione vale anche dove basterebbe quello di squadra, così chi
+gestisce ne ricorda uno solo. Senza codice, dal sito non si scrive niente.
 
 ## Com'è organizzata la cartella
 
@@ -27,6 +36,7 @@ Tutte e tre scrivono su Supabase e chiedono il **codice della squadra** per farl
 ├── squadra/index.html
 ├── calendario/index.html
 ├── regolamento/index.html
+├── classifica/index.html
 ├── assets/
 │   ├── css/site.css      colori e stili comuni
 │   ├── js/supabase.js    lettura del database e chiamata alle sue funzioni
@@ -112,7 +122,8 @@ database, non la pagina: non si aggira smanettando col browser.
 | `rosa_pubblica` | `aggiungi_giocatore`, `imposta_tessere` |
 | `calendario_pubblico` | `crea_giornata`, `modifica_giornata`, `annulla_giornata`, `elimina_giornata` |
 | `disponibilita_pubblica` | `segna_disponibilita` |
-| — (solo funzione) | `distinta` |
+| — (solo funzione) | `distinta`, `da_sollecitare` |
+| `classifica`, `partite_pubbliche` | `segna_risultato`, `elimina_risultato` |
 
 ### I tesserati ANSPI
 
@@ -140,6 +151,38 @@ da una funzione che prima chiede il codice della squadra.
 
 La stampa non usa una pagina a parte: c'è un `@media print` che toglie di mezzo
 tutto il resto e lascia solo il foglio, riempito al momento in `#stampa`.
+
+### I solleciti
+
+Sulle giornate future c'è **Sollecita**: chiede il codice di gestione e mostra
+chi non ha ancora risposto, con un pulsante per ciascuno.
+
+Il pulsante non manda niente: **apre l'app messaggi con destinatario e testo già
+scritti**, e l'invio lo dà la persona. Nessun browser permette a una pagina di
+spedire un SMS da sola, ed è giusto così. C'è anche un "SMS a tutti" con i numeri
+in un colpo solo, e un "Copia per WhatsApp" per chi preferisce incollare nel gruppo.
+
+I numeri di telefono escono da `da_sollecitare`, che vuole il codice di gestione:
+la rubrica della squadra non deve uscire a chiunque conosca la parola del gruppo.
+
+### La classifica
+
+`/classifica/` mostra i tre gironi con punti, differenza reti e i risultati. Tre
+punti la vittoria e uno il pareggio — il regolamento non lo dice, è lo standard.
+
+Le partite sono **tutte** quelle del campionato, non solo le nostre: senza i
+risultati degli altri la classifica non esiste. Le nostre giornate restano nel
+calendario, che dice quando e dove; qui c'è com'è finita.
+
+Due cose che la pagina calcola da sola perché discendono dal regolamento: la riga
+tratteggiata sotto la terza nei gironi da 4 (l'ultima è eliminata) e la nota che
+dice **quale delle due terze passerebbe adesso**, confrontando la differenza reti
+fra girone A e girone B.
+
+Un incontro esiste una volta sola, in qualunque ordine lo si scriva: reinserire
+"Smama – Green Lions" dopo "Green Lions – Smama" corregge la stessa riga invece di
+crearne una seconda. Vale per un girone a giro unico; se ci fosse il ritorno,
+si toglie un indice.
 
 ### Gli inviti al calendario
 
@@ -171,6 +214,9 @@ Confident/
 ├── aggiornamento-1-elimina-giornata.sql
 ├── aggiornamento-2-tessere-e-import.sql   tessere ANSPI/CSI, rosa dalle divise
 ├── aggiornamento-3-distinta.sql
+├── aggiornamento-4-codice-admin.sql        il secondo codice
+├── aggiornamento-5-solleciti.sql
+├── aggiornamento-6-risultati-classifica.sql
 ├── ISTRUZIONI.md                       come è stata messa online la pagina divise
 └── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
 ```

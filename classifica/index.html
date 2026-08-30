@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Pagina della squadra, non vetrina: il noindex la tiene fuori dai motori
+     di ricerca. Ci si arriva dal link, come per le divise. -->
+<meta name="robots" content="noindex">
+<title>Classifica · Green Lions</title>
+<meta name="description" content="La classifica dei gironi e i risultati del campionato.">
+<meta name="theme-color" content="#1c7a3e">
+
+<link rel="icon" type="image/svg+xml" href="/assets/img/leone.svg">
+<link rel="icon" type="image/png" href="/assets/img/favicon.png">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/css/site.css">
+<style>
+  .girone { margin: 26px 0 0; }
+  .girone > h2 {
+    margin: 0 0 11px; font-size: 12px; font-weight: 800;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .girone > h2 .nostro {
+    margin-left: 8px; letter-spacing: .07em;
+    padding: 4px 7px; border-radius: 999px; font-size: 9.5px;
+    background: var(--accent-sf); color: var(--kit-verde);
+  }
+  @media (prefers-color-scheme: dark) { .girone > h2 .nostro { color: var(--accent); } }
+
+  /* La tabella su un telefono stretto non ci sta: scorre lei, non la pagina. */
+  .rotolo { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+  table.classifica { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 430px; }
+  table.classifica th, table.classifica td { padding: 9px 8px; text-align: right; white-space: nowrap; }
+  table.classifica th {
+    font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-3); border-bottom: 1px solid var(--line);
+  }
+  table.classifica td { border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  table.classifica tr:last-child td { border-bottom: none; }
+  table.classifica .pos { width: 30px; text-align: center; color: var(--ink-3); font-size: 12.5px; }
+  table.classifica .squadra { text-align: left; width: 99%; font-weight: 600; white-space: normal; }
+  table.classifica .punti { font-weight: 800; font-size: 15px; }
+  table.classifica tr.noi td { background: var(--accent-sf); }
+  table.classifica tr.noi .squadra { color: var(--kit-verde); font-weight: 800; }
+  @media (prefers-color-scheme: dark) { table.classifica tr.noi .squadra { color: var(--accent); } }
+
+  /* la riga di taglio: chi sta sotto, dal girone da 4, è fuori */
+  table.classifica tr.taglio td { border-bottom: 2px dashed var(--kit-rosso); }
+
+  .partite { list-style: none; margin: 12px 0 0; padding: 0; }
+  .partite li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; margin: 0 0 6px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 9px;
+    font-size: 13.5px;
+  }
+  .partite .casa   { flex: 1; text-align: right; }
+  .partite .ospite { flex: 1; }
+  .partite .ris {
+    flex: none; font-weight: 800; font-variant-numeric: tabular-nums;
+    padding: 3px 9px; border-radius: 7px; background: var(--surface-2);
+  }
+  .partite .noi { font-weight: 800; color: var(--kit-verde); }
+  @media (prefers-color-scheme: dark) { .partite .noi { color: var(--accent); } }
+  .partite button { all: unset; cursor: pointer; display: flex; align-items: center; gap: 10px; width: 100%; }
+  .partite button:focus-visible { outline: 2px solid var(--kit-verde); outline-offset: 3px; border-radius: 6px; }
+
+  .terze {
+    margin: 26px 0 0; padding: 15px 17px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 5px solid var(--kit-rosso); border-radius: var(--radius);
+    font-size: 13.5px; color: var(--ink-2); line-height: 1.6;
+  }
+  .terze b { color: var(--ink); }
+  #esito { margin: 0 0 16px; }
+</style>
+</head>
+<body>
+
+<div class="banda"></div>
+
+<svg style="position:absolute;width:0;height:0" aria-hidden="true">
+  <symbol id="leone" viewBox="0 0 100 100"><path d="M50.0 2.0 L58.1 17.0 L72.3 7.5 L72.5 24.6 L89.5 22.7 L81.8 37.9 L97.7 44.2 L83.8 54.1 L94.9 67.0 L78.0 69.3 L81.8 85.9 L65.8 80.1 L61.5 96.6 L50.0 84.0 L38.5 96.6 L34.2 80.1 L18.2 85.9 L22.0 69.3 L5.1 67.0 L16.2 54.1 L2.3 44.2 L18.2 37.9 L10.5 22.7 L27.5 24.6 L27.7 7.5 L41.9 17.0 Z" style="fill:var(--leo-criniera,#1c7a3e)"/>
+  <circle cx="50" cy="50" r="34" style="fill:var(--leo-criniera,#1c7a3e)"/>
+  <circle cx="29" cy="32" r="8.5" style="fill:var(--leo-faccia,#efc41a)"/>
+  <circle cx="71" cy="32" r="8.5" style="fill:var(--leo-faccia,#efc41a)"/>
+  <circle cx="29" cy="32" r="3.8" style="fill:var(--leo-tratti,#12522a)"/>
+  <circle cx="71" cy="32" r="3.8" style="fill:var(--leo-tratti,#12522a)"/>
+  <circle cx="50" cy="52" r="27" style="fill:var(--leo-faccia,#efc41a)"/>
+  <ellipse cx="39" cy="45" rx="4.4" ry="5.4" style="fill:var(--leo-tratti,#12522a)"/>
+  <ellipse cx="61" cy="45" rx="4.4" ry="5.4" style="fill:var(--leo-tratti,#12522a)"/>
+  <path d="M50 66 L41.5 57.5 L58.5 57.5 Z" style="fill:var(--leo-tratti,#12522a)"/>
+  <path d="M50 66 L50 72" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M50 72 q -7 6 -13 0" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M50 72 q  7 6  13 0" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/></symbol>
+</svg>
+
+<div class="wrap">
+
+  <p><a class="back" href="/">← Green Lions</a></p>
+
+  <header class="site-head">
+    <span class="crest"><svg class="leo" viewBox="0 0 100 100" aria-hidden="true"><use href="#leone"></use></svg>Green Lions</span>
+    <h1>Classifica</h1>
+    <p class="lede">I tre gironi e i risultati. Tre punti la vittoria, uno il pareggio; a parità conta la differenza reti.</p>
+  </header>
+
+  <div class="msg ok" id="esito"></div>
+
+  <div class="barra">
+    <div class="conto" id="conto"><b>—</b> partite inserite</div>
+    <button type="button" class="btn ghost piccolo" id="apriRisultato">Inserisci un risultato</button>
+  </div>
+
+  <div id="tabellone" class="caricamento"></div>
+
+  <p class="note">Perché la classifica dica qualcosa servono anche i risultati delle altre squadre:
+     li inserisce chi ha il codice di gestione. Le nostre partite, con orario e campo, stanno nel
+     <a href="/calendario/">Calendario</a>; le regole del torneo nel <a href="/regolamento/">Regolamento</a>.</p>
+
+  <footer class="site-footer">Green Lions · <a href="/">torna alla home</a></footer>
+
+</div>
+
+
+<dialog id="finestraRisultato">
+  <div class="testata"></div>
+  <form class="foglio" id="moduloRisultato" novalidate>
+    <h2 id="titoloRisultato">Inserisci un risultato</h2>
+
+    <div class="msg err" id="erroreRisultato"></div>
+
+    <label><span>Girone</span>
+      <select name="girone" id="sceltaGirone">
+        <option value="A">Girone A</option>
+        <option value="B" selected>Girone B — il nostro</option>
+        <option value="C">Girone C</option>
+      </select>
+    </label>
+
+    <label><span>In casa</span><select name="casa" id="sceltaCasa" required></select></label>
+    <label><span>Ospite</span><select name="ospite" id="sceltaOspite" required></select></label>
+
+    <div class="riga">
+      <label><span>Gol in casa</span><input name="golCasa" type="number" min="0" max="99" required inputmode="numeric"></label>
+      <label><span>Gol ospite</span><input name="golOspite" type="number" min="0" max="99" required inputmode="numeric"></label>
+    </div>
+
+    <label><span>Giocata il <small>(facoltativo)</small></span><input name="data" type="date"></label>
+    <label><span>Codice di gestione</span><input name="codice" required maxlength="40" autocapitalize="characters" placeholder="il tuo, non quello del gruppo"></label>
+
+    <div class="azioni">
+      <button type="button" class="btn ghost" id="chiudiRisultato">Annulla</button>
+      <button type="submit" class="btn primary" id="confermaRisultato">Salva</button>
+    </div>
+
+    <div class="separa" id="zonaEliminaRisultato" hidden>
+      <button type="button" class="btn pericolo piccolo" id="eliminaRisultato" style="width:100%">Cancella questo risultato</button>
+      <p class="appunto">La partita torna come non giocata e la classifica si ricalcola.</p>
+    </div>
+  </form>
+</dialog>
+
+<script src="/assets/js/supabase.js"></script>
+<script>
+const tabellone = document.getElementById('tabellone');
+const esito     = document.getElementById('esito');
+
+const finestraRisultato = document.getElementById('finestraRisultato');
+const moduloRisultato   = document.getElementById('moduloRisultato');
+const erroreRisultato   = document.getElementById('erroreRisultato');
+const confermaRisultato = document.getElementById('confermaRisultato');
+
+let classifica = [];
+let partite = [];
+let partitaInModifica = null;
+
+const GIRONI = ['A', 'B', 'C'];
+const perGirone = (g) => classifica.filter(r => r.girone === g);
+
+async function carica() {
+  GL_ULTIMO_ERRORE = null;
+  [classifica, partite] = await Promise.all([
+    glLeggi('classifica', 'select=*'),
+    glLeggi('partite_pubbliche', 'select=*')
+  ]);
+  disegna();
+
+  const nota = document.querySelector('.note');
+  if (GL_ULTIMO_ERRORE) {
+    nota.textContent = '⚠ Non riesco a leggere la classifica dal database (' + GL_ULTIMO_ERRORE +
+      '). Quello che vedi qui sopra potrebbe non essere aggiornato.';
+  }
+}
+
+function disegna() {
+  tabellone.classList.remove('caricamento');
+  tabellone.innerHTML = '';
+
+  const giocate = partite.length;
+  document.getElementById('conto').innerHTML =
+    '<b>' + giocate + '</b> ' + (giocate === 1 ? 'partita inserita' : 'partite inserite');
+
+  if (classifica.length === 0) {
+    tabellone.innerHTML = '<p class="vuoto">Le squadre non ci sono ancora: manca il pezzo di database che le crea.</p>';
+    return;
+  }
+
+  // il nostro girone per primo, gli altri dopo
+  const nostro = (classifica.find(r => r.noi) || {}).girone;
+  const ordine = [nostro, ...GIRONI.filter(g => g !== nostro)].filter(Boolean);
+
+  for (const g of ordine) tabellone.appendChild(sezioneGirone(g, g === nostro));
+
+  const nota = notaTerze();
+  if (nota) tabellone.appendChild(nota);
+}
+
+function sezioneGirone(girone, nostro) {
+  const righe = perGirone(girone);
+  const sezione = document.createElement('section');
+  sezione.className = 'girone';
+
+  const titolo = document.createElement('h2');
+  titolo.textContent = 'Girone ' + girone;
+  if (nostro) {
+    const bollo = document.createElement('span');
+    bollo.className = 'nostro';
+    bollo.textContent = 'il nostro';
+    titolo.appendChild(bollo);
+  }
+  sezione.appendChild(titolo);
+
+  const rotolo = document.createElement('div');
+  rotolo.className = 'rotolo';
+  const tabella = document.createElement('table');
+  tabella.className = 'classifica';
+  tabella.innerHTML =
+    '<thead><tr><th class="pos"></th><th class="squadra">Squadra</th>' +
+    '<th>G</th><th>V</th><th>N</th><th>P</th><th>GF</th><th>GS</th><th>DR</th><th class="punti">Pt</th></tr></thead>' +
+    '<tbody></tbody>';
+  const corpo = tabella.querySelector('tbody');
+
+  righe.forEach((r, i) => {
+    const riga = document.createElement('tr');
+    if (r.noi) riga.classList.add('noi');
+    // nei gironi da 4 l'ultima è eliminata: la riga di taglio lo mostra
+    if (righe.length === 4 && i === 2) riga.classList.add('taglio');
+
+    riga.innerHTML = '<td class="pos"></td><td class="squadra"></td>' +
+      '<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="punti"></td>';
+    const c = riga.querySelectorAll('td');
+    c[0].textContent = i + 1;
+    c[1].textContent = r.nome;
+    c[2].textContent = r.giocate;
+    c[3].textContent = r.vinte;
+    c[4].textContent = r.pari;
+    c[5].textContent = r.perse;
+    c[6].textContent = r.gol_fatti;
+    c[7].textContent = r.gol_subiti;
+    c[8].textContent = (r.differenza > 0 ? '+' : '') + r.differenza;
+    c[9].textContent = r.punti;
+    corpo.appendChild(riga);
+  });
+
+  rotolo.appendChild(tabella);
+  sezione.appendChild(rotolo);
+
+  const incontri = partite.filter(p => p.girone === girone);
+  if (incontri.length) sezione.appendChild(elencoPartite(incontri));
+
+  return sezione;
+}
+
+function elencoPartite(incontri) {
+  const lista = document.createElement('ul');
+  lista.className = 'partite';
+
+  for (const p of incontri) {
+    const voce = document.createElement('li');
+    const bottone = document.createElement('button');
+    bottone.type = 'button';
+    bottone.innerHTML = '<span class="casa"></span><span class="ris"></span><span class="ospite"></span>';
+
+    const casa = bottone.querySelector('.casa');
+    casa.textContent = p.casa;
+    if (nostraSquadra(p.casa)) casa.classList.add('noi');
+
+    const ospite = bottone.querySelector('.ospite');
+    ospite.textContent = p.ospite;
+    if (nostraSquadra(p.ospite)) ospite.classList.add('noi');
+
+    bottone.querySelector('.ris').textContent = p.gol_casa + '–' + p.gol_ospite;
+    bottone.setAttribute('aria-label',
+      'Correggi ' + p.casa + ' ' + p.gol_casa + ' a ' + p.gol_ospite + ' ' + p.ospite);
+    bottone.onclick = () => apriRisultato(p);
+
+    voce.appendChild(bottone);
+    lista.appendChild(voce);
+  }
+  return lista;
+}
+
+const nostraSquadra = (nome) => classifica.some(r => r.noi && r.nome === nome);
+
+/* La regola che manda a casa una delle due terze: non è la posizione,
+   è la differenza reti confrontata fra due gironi diversi. */
+function notaTerze() {
+  const terze = ['A', 'B'].map(g => perGirone(g)[2]).filter(Boolean);
+  if (terze.length < 2) return null;
+
+  const p = document.createElement('p');
+  p.className = 'terze';
+
+  if (terze.some(t => t.giocate === 0)) {
+    p.innerHTML = '<b>Le due terze.</b> Fra la terza del girone A e quella del girone B ne resta ' +
+      'una sola: esce quella con la differenza reti peggiore. Troppo presto per dire quale.';
+    return p;
+  }
+
+  const [x, y] = [...terze].sort((a, b) => b.differenza - a.differenza);
+  if (x.differenza === y.differenza) {
+    p.innerHTML = '<b>Le due terze sono pari.</b> ' + x.nome + ' e ' + y.nome +
+      ' hanno la stessa differenza reti (' + (x.differenza > 0 ? '+' : '') + x.differenza +
+      '): il regolamento non dice cosa succede in questo caso, ' +
+      'è uno dei punti da farsi confermare.';
+    return p;
+  }
+
+  const segno = (n) => (n > 0 ? '+' : '') + n;
+  p.innerHTML = '<b>Fra le due terze</b>, allo stato attuale passerebbe <b>' + x.nome +
+    '</b> (girone ' + x.girone + ', differenza ' + segno(x.differenza) + ') e uscirebbe <b>' +
+    y.nome + '</b> (girone ' + y.girone + ', differenza ' + segno(y.differenza) + ').';
+  return p;
+}
+
+/* ---------------- inserire e correggere un risultato ---------------- */
+
+function riempiTendine(girone, casaId, ospiteId) {
+  const squadre = perGirone(girone).slice().sort((a, b) => a.nome.localeCompare(b.nome, 'it'));
+  for (const [elemento, scelto] of [['sceltaCasa', casaId], ['sceltaOspite', ospiteId]]) {
+    const tendina = document.getElementById(elemento);
+    tendina.innerHTML = '';
+    tendina.appendChild(new Option('— scegli —', ''));
+    for (const s of squadre) tendina.appendChild(new Option(s.nome, s.id, false, String(s.id) === String(scelto)));
+  }
+}
+
+function apriRisultato(p) {
+  partitaInModifica = p || null;
+  erroreRisultato.classList.remove('mostra');
+  moduloRisultato.reset();
+
+  document.getElementById('titoloRisultato').textContent = p ? 'Correggi il risultato' : 'Inserisci un risultato';
+  document.getElementById('zonaEliminaRisultato').hidden = !p;
+
+  const girone = p ? p.girone : (classifica.find(r => r.noi) || { girone: 'B' }).girone;
+  moduloRisultato.elements.girone.value = girone;
+  riempiTendine(girone, p && p.casa_id, p && p.ospite_id);
+
+  if (p) {
+    moduloRisultato.elements.golCasa.value = p.gol_casa;
+    moduloRisultato.elements.golOspite.value = p.gol_ospite;
+    if (p.giocata_il) moduloRisultato.elements.data.value = p.giocata_il;
+  }
+
+  finestraRisultato.showModal();
+}
+
+document.getElementById('sceltaGirone').onchange = (ev) => riempiTendine(ev.target.value);
+
+moduloRisultato.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  erroreRisultato.classList.remove('mostra');
+
+  const d = Object.fromEntries(new FormData(moduloRisultato));
+  if (!d.casa || !d.ospite) return erroreIn(erroreRisultato, 'Scegli tutt\'e due le squadre.');
+  if (d.casa === d.ospite) return erroreIn(erroreRisultato, GL_MESSAGGI.STESSA_SQUADRA);
+  const gc = Number(d.golCasa), go = Number(d.golOspite);
+  if (!(gc >= 0 && gc <= 99 && go >= 0 && go <= 99) || d.golCasa === '' || d.golOspite === '') {
+    return erroreIn(erroreRisultato, GL_MESSAGGI.GOL_NON_VALIDI);
+  }
+  if (!d.codice.trim()) return erroreIn(erroreRisultato, 'Manca il codice di gestione.');
+
+  confermaRisultato.disabled = true;
+  confermaRisultato.textContent = 'Un attimo…';
+
+  try {
+    await glChiama('segna_risultato', {
+      _codice: d.codice.trim(),
+      _casa_id: Number(d.casa),
+      _ospite_id: Number(d.ospite),
+      _gol_casa: gc,
+      _gol_ospite: go,
+      _giocata_il: d.data || null
+    });
+    finestraRisultato.close();
+    esito.textContent = 'Risultato salvato.';
+    esito.classList.add('mostra');
+    await carica();
+  } catch (e) {
+    erroreIn(erroreRisultato, glMessaggio(e));
+  } finally {
+    confermaRisultato.disabled = false;
+    confermaRisultato.textContent = 'Salva';
+  }
+});
+
+document.getElementById('eliminaRisultato').onclick = async () => {
+  if (!partitaInModifica) return;
+  const codice = moduloRisultato.elements.codice.value.trim();
+  if (!codice) return erroreIn(erroreRisultato, 'Scrivi il codice di gestione per cancellare.');
+  if (!confirm('Cancellare ' + partitaInModifica.casa + ' – ' + partitaInModifica.ospite + '?')) return;
+
+  try {
+    await glChiama('elimina_risultato', { _codice: codice, _partita_id: partitaInModifica.id });
+    finestraRisultato.close();
+    esito.textContent = 'Risultato cancellato.';
+    esito.classList.add('mostra');
+    await carica();
+  } catch (e) {
+    erroreIn(erroreRisultato, glMessaggio(e));
+  }
+};
+
+function erroreIn(riquadro, testo) {
+  riquadro.textContent = testo;
+  riquadro.classList.add('mostra');
+  riquadro.scrollIntoView({ block: 'nearest' });
+}
+
+document.getElementById('apriRisultato').onclick = () => apriRisultato(null);
+document.getElementById('chiudiRisultato').onclick = () => finestraRisultato.close();
+
+carica();
+</script>
+</body>
+</html>

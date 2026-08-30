@@ -89,6 +89,16 @@
 
   #esito { margin: 0 0 16px; }
 
+  /* ---- chi non ha risposto ---- */
+  .manchevoli { list-style: none; margin: 0 0 14px; padding: 0; }
+  .manchevoli li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 11px; margin: 0 0 6px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 9px;
+  }
+  .manchevoli .chi { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 600; }
+  .manchevoli .senza { font-size: 12px; color: var(--ink-3); font-weight: 400; }
+
   /* ---- la distinta a schermo ---- */
   .distinta { list-style: none; margin: 0 0 4px; padding: 0; }
   .distinta li {
@@ -298,6 +308,40 @@
       <div class="azioni" style="margin-top:16px">
         <button type="button" class="btn ghost" id="chiudiDistinta2">Chiudi</button>
         <button type="button" class="btn primary" id="stampaDistinta">Stampa</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="finestraSolleciti">
+  <div class="testata"></div>
+  <div class="foglio">
+    <h2>Chi non ha risposto</h2>
+    <p class="dettaglio" id="sollecitiQuale" style="margin:0 0 16px"></p>
+
+    <div class="msg err" id="erroreSolleciti"></div>
+    <div class="msg ok" id="esitoSolleciti"></div>
+
+    <form id="moduloSolleciti" novalidate>
+      <label><span>Codice di gestione</span>
+        <input name="codice" required maxlength="40" autocapitalize="characters" placeholder="il tuo, non quello del gruppo">
+      </label>
+      <p class="appunto" style="margin:-4px 0 14px">Qui compaiono i numeri di telefono, perciò serve
+         il codice di gestione e non quello che gira nel gruppo.</p>
+      <div class="azioni">
+        <button type="button" class="btn ghost" id="chiudiSolleciti">Chiudi</button>
+        <button type="submit" class="btn primary" id="confermaSolleciti">Vedi</button>
+      </div>
+    </form>
+
+    <div id="sollecitiCorpo" hidden>
+      <ul class="manchevoli" id="sollecitiElenco"></ul>
+      <p class="appunto" style="margin:-6px 0 14px">Il telefono apre l'app messaggi con testo e
+         destinatario già pronti: l'invio lo dai tu, e parte dal tuo numero.</p>
+      <div class="azioni" style="flex-wrap:wrap">
+        <button type="button" class="btn ghost" id="chiudiSolleciti2">Chiudi</button>
+        <button type="button" class="btn ghost" id="copiaSolleciti">Copia per WhatsApp</button>
+        <button type="button" class="btn primary" id="smsATutti">SMS a tutti</button>
       </div>
     </div>
   </div>
@@ -541,6 +585,16 @@ function scheda(g, passata) {
     azioni.appendChild(rispondi);
   }
 
+  // Sollecitare ha senso solo prima: a partita giocata non serve più.
+  if (!annullata && !passata) {
+    const sollecita = document.createElement('button');
+    sollecita.type = 'button';
+    sollecita.className = 'btn ghost piccolo';
+    sollecita.textContent = 'Sollecita';
+    sollecita.onclick = () => apriSolleciti(g);
+    azioni.appendChild(sollecita);
+  }
+
   // La distinta serve prima della partita, ma anche dopo per ricontrollare
   // chi c'era: la si tiene su tutto quello che non è stato annullato.
   if (!annullata) {
@@ -626,6 +680,148 @@ moduloDisp.addEventListener('submit', async ev => {
     confermaDisp.textContent = 'Conferma';
   }
 });
+
+/* ---------------- i solleciti ---------------- */
+
+const finestraSolleciti = document.getElementById('finestraSolleciti');
+const moduloSolleciti   = document.getElementById('moduloSolleciti');
+const erroreSolleciti   = document.getElementById('erroreSolleciti');
+const esitoSolleciti    = document.getElementById('esitoSolleciti');
+const confermaSolleciti = document.getElementById('confermaSolleciti');
+let sollecitiGiornata = null;
+let sollecitiMancanti = [];
+
+/**
+ * L'indirizzo per aprire l'app messaggi con tutto già scritto.
+ *
+ * Una pagina web non può mandare un SMS da sola — nessun browser lo
+ * consente — ma può preparare il messaggio e lasciare l'invio a chi
+ * sta davanti al telefono.
+ *
+ * Il "?&" prima di body non è un errore di battitura: iOS e Android
+ * non si sono mai messi d'accordo sul separatore, e quella forma la
+ * digeriscono tutti e due.
+ */
+function linkSms(numeri, testo) {
+  const puliti = numeri.map(n => String(n).replace(/[^\d+]/g, '')).filter(Boolean);
+  return 'sms:' + puliti.join(',') + '?&body=' + encodeURIComponent(testo);
+}
+
+function quandoDiscorsivo(g) {
+  return fmt(g.inizio, { weekday: 'long', day: 'numeric', month: 'long' }) +
+         ' alle ' + fmt(g.inizio, { hour: '2-digit', minute: '2-digit' });
+}
+
+function testoSollecito(g, nome) {
+  return (nome ? 'Ciao ' + nome + ', ' : '') +
+    'manca la tua disponibilità per ' + nomeGiornata(g) + ' di ' + quandoDiscorsivo(g) +
+    '. Si risponde qui: ' + location.origin + '/calendario/';
+}
+
+function apriSolleciti(g) {
+  sollecitiGiornata = g;
+  erroreSolleciti.classList.remove('mostra');
+  esitoSolleciti.classList.remove('mostra');
+  moduloSolleciti.reset();
+  moduloSolleciti.hidden = false;
+  document.getElementById('sollecitiCorpo').hidden = true;
+  document.getElementById('sollecitiQuale').textContent =
+    nomeGiornata(g) + ' · ' + quandoDiscorsivo(g);
+  finestraSolleciti.showModal();
+  moduloSolleciti.querySelector('[name=codice]').focus();
+}
+
+moduloSolleciti.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  erroreSolleciti.classList.remove('mostra');
+
+  const codice = moduloSolleciti.elements.codice.value.trim();
+  if (!codice) return erroreIn(erroreSolleciti, 'Manca il codice di gestione.');
+
+  confermaSolleciti.disabled = true;
+  confermaSolleciti.textContent = 'Un attimo…';
+
+  try {
+    sollecitiMancanti = await glChiama('da_sollecitare', {
+      _codice: codice,
+      _giornata_id: sollecitiGiornata.id
+    }) || [];
+    disegnaSolleciti();
+    moduloSolleciti.hidden = true;
+    document.getElementById('sollecitiCorpo').hidden = false;
+  } catch (e) {
+    erroreIn(erroreSolleciti, glMessaggio(e));
+  } finally {
+    confermaSolleciti.disabled = false;
+    confermaSolleciti.textContent = 'Vedi';
+  }
+});
+
+function disegnaSolleciti() {
+  const elenco = document.getElementById('sollecitiElenco');
+  elenco.innerHTML = '';
+
+  const conNumero = sollecitiMancanti.filter(p => p.telefono);
+
+  if (sollecitiMancanti.length === 0) {
+    const voce = document.createElement('li');
+    voce.innerHTML = '<span class="chi">Hanno risposto tutti. Non c\'è nessuno da sollecitare.</span>';
+    elenco.appendChild(voce);
+  }
+
+  for (const p of sollecitiMancanti) {
+    const voce = document.createElement('li');
+    voce.innerHTML = '<span class="chi"></span>';
+    voce.querySelector('.chi').textContent = p.nome + ' ' + p.cognome;
+
+    if (p.telefono) {
+      const sms = document.createElement('a');
+      sms.className = 'btn ghost piccolo';
+      sms.href = linkSms([p.telefono], testoSollecito(sollecitiGiornata, p.nome));
+      sms.textContent = 'SMS';
+      voce.appendChild(sms);
+    } else {
+      const senza = document.createElement('span');
+      senza.className = 'senza';
+      senza.textContent = 'numero mancante';
+      voce.appendChild(senza);
+    }
+    elenco.appendChild(voce);
+  }
+
+  const tutti = document.getElementById('smsATutti');
+  tutti.disabled = conNumero.length === 0;
+  tutti.textContent = conNumero.length > 1
+    ? 'SMS a tutti (' + conNumero.length + ')'
+    : 'SMS';
+}
+
+document.getElementById('smsATutti').onclick = () => {
+  const numeri = sollecitiMancanti.filter(p => p.telefono).map(p => p.telefono);
+  if (!numeri.length) return;
+  // senza nome: è un messaggio solo, che arriva a tutti
+  location.href = linkSms(numeri, testoSollecito(sollecitiGiornata, null));
+};
+
+document.getElementById('copiaSolleciti').onclick = async () => {
+  const nomi = sollecitiMancanti.map(p => p.nome).join(', ');
+  const testo = sollecitiMancanti.length
+    ? 'Manca ancora la disponibilità per ' + nomeGiornata(sollecitiGiornata) + ' di ' +
+      quandoDiscorsivo(sollecitiGiornata) + ': ' + nomi +
+      '.\nSi risponde qui: ' + location.origin + '/calendario/'
+    : 'Hanno risposto tutti per ' + nomeGiornata(sollecitiGiornata) + '.';
+
+  try {
+    await navigator.clipboard.writeText(testo);
+    esitoSolleciti.textContent = 'Messaggio copiato: incollalo nel gruppo.';
+    esitoSolleciti.classList.add('mostra');
+  } catch {
+    erroreIn(erroreSolleciti, 'Il browser non mi lascia copiare. Il messaggio è: ' + testo);
+  }
+};
+
+document.getElementById('chiudiSolleciti').onclick  = () => finestraSolleciti.close();
+document.getElementById('chiudiSolleciti2').onclick = () => finestraSolleciti.close();
 
 /* ---------------- la distinta ---------------- */
 
