@@ -116,6 +116,7 @@ const GL_MESSAGGI = {
   LUOGO_NON_VALIDO:    'Scrivi dove si gioca.',
   STATO_NON_VALIDO:    'Risposta non valida.',
   GIORNATA_INESISTENTE:'Questa giornata non c\'è più o è stata annullata. Ricarica la pagina.',
+  GIOCATORE_INESISTENTE:'Questa persona non è più in rosa. Ricarica la pagina.',
   PRIMA_ANNULLA:       'C\'è già chi ha questa giornata nel proprio calendario. Annullala prima — così gli parte la disdetta e l\'evento sparisce anche da lì — poi la puoi eliminare.',
   RETE_ASSENTE:        'Connessione assente. Controlla la rete e riprova.'
 };

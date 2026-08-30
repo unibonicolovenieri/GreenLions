@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Pagina della squadra, non vetrina: il noindex la tiene fuori dai motori
+     di ricerca. Ci si arriva dal link, come per le divise. -->
+<meta name="robots" content="noindex">
+<title>Regolamento · Green Lions</title>
+<meta name="description" content="Le regole del campionato che riguardano i Green Lions.">
+<meta name="theme-color" content="#1c7a3e">
+
+<link rel="icon" type="image/svg+xml" href="/assets/img/leone.svg">
+<link rel="icon" type="image/png" href="/assets/img/favicon.png">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/css/site.css">
+<style>
+  /* ============================================================
+     Impaginazione da documento: il regolamento si legge, non si usa.
+     Le voci nuove vanno aggiunte come <section class="voce">,
+     con dentro un <h2> e il testo. Non serve toccare altro.
+     ============================================================ */
+
+  .voce { margin: 0 0 26px; }
+  .voce > h2 {
+    margin: 0 0 10px; font-size: 12px; font-weight: 800;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .voce p { margin: 0 0 11px; font-size: 15px; line-height: 1.62; }
+  .voce p:last-child { margin-bottom: 0; }
+  .voce ul { margin: 0 0 11px; padding-left: 20px; font-size: 15px; line-height: 1.62; }
+  .voce li { margin: 0 0 5px; }
+
+  /* la regola che il calendario controlla da solo */
+  .chiave {
+    padding: 17px 19px; margin: 0 0 12px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 5px solid var(--kit-giallo); border-radius: var(--radius);
+  }
+  .chiave h3 { margin: 0 0 7px; font-size: 16.5px; letter-spacing: -.012em; }
+  .chiave p { margin: 0; font-size: 14.5px; color: var(--ink-2); line-height: 1.6; }
+  .chiave .tes {
+    display: inline-block; margin-bottom: 9px;
+    font: 800 9.5px/1 ui-sans-serif, system-ui, sans-serif; font-style: normal;
+    letter-spacing: .07em; padding: 5px 7px; border-radius: 5px;
+    background: var(--accent-sf); color: var(--kit-verde);
+  }
+  @media (prefers-color-scheme: dark) { .chiave .tes { color: var(--accent); } }
+
+  .attesa {
+    padding: 24px 22px; border: 1px dashed var(--line); border-radius: var(--radius);
+    background: var(--surface); color: var(--ink-2); font-size: 14.5px; line-height: 1.6;
+  }
+  .attesa b { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="banda"></div>
+
+<svg style="position:absolute;width:0;height:0" aria-hidden="true">
+  <symbol id="leone" viewBox="0 0 100 100"><path d="M50.0 2.0 L58.1 17.0 L72.3 7.5 L72.5 24.6 L89.5 22.7 L81.8 37.9 L97.7 44.2 L83.8 54.1 L94.9 67.0 L78.0 69.3 L81.8 85.9 L65.8 80.1 L61.5 96.6 L50.0 84.0 L38.5 96.6 L34.2 80.1 L18.2 85.9 L22.0 69.3 L5.1 67.0 L16.2 54.1 L2.3 44.2 L18.2 37.9 L10.5 22.7 L27.5 24.6 L27.7 7.5 L41.9 17.0 Z" style="fill:var(--leo-criniera,#1c7a3e)"/>
+  <circle cx="50" cy="50" r="34" style="fill:var(--leo-criniera,#1c7a3e)"/>
+  <circle cx="29" cy="32" r="8.5" style="fill:var(--leo-faccia,#efc41a)"/>
+  <circle cx="71" cy="32" r="8.5" style="fill:var(--leo-faccia,#efc41a)"/>
+  <circle cx="29" cy="32" r="3.8" style="fill:var(--leo-tratti,#12522a)"/>
+  <circle cx="71" cy="32" r="3.8" style="fill:var(--leo-tratti,#12522a)"/>
+  <circle cx="50" cy="52" r="27" style="fill:var(--leo-faccia,#efc41a)"/>
+  <ellipse cx="39" cy="45" rx="4.4" ry="5.4" style="fill:var(--leo-tratti,#12522a)"/>
+  <ellipse cx="61" cy="45" rx="4.4" ry="5.4" style="fill:var(--leo-tratti,#12522a)"/>
+  <path d="M50 66 L41.5 57.5 L58.5 57.5 Z" style="fill:var(--leo-tratti,#12522a)"/>
+  <path d="M50 66 L50 72" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M50 72 q -7 6 -13 0" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M50 72 q  7 6  13 0" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/></symbol>
+</svg>
+
+<div class="wrap">
+
+  <p><a class="back" href="/">← Green Lions</a></p>
+
+  <header class="site-head">
+    <span class="crest"><svg class="leo" viewBox="0 0 100 100" aria-hidden="true"><use href="#leone"></use></svg>Green Lions</span>
+    <h1>Regolamento</h1>
+    <p class="lede">Le regole del campionato che ci riguardano da vicino.</p>
+  </header>
+
+  <!-- ============================================================
+       Questa è l'unica regola già nota, ed è anche l'unica che il
+       sito controlla da solo: la pagina Calendario conta gli ANSPI
+       disponibili per ogni giornata e avvisa quando sono meno di due.
+       Se il numero minimo cambia, va cambiato in due posti: qui e in
+       calendario/index.html (cerca "anspiSi").
+       ============================================================ -->
+  <section class="voce">
+    <h2>Tesseramento</h2>
+
+    <div class="chiave">
+      <span class="tes">ANSPI</span>
+      <h3>Almeno due tesserati ANSPI in campo, per tutta la partita</h3>
+      <p>Non è un minimo da raggiungere a inizio gara: va tenuto dal primo
+         all'ultimo minuto. Con solo due ANSPI disponibili nessuno dei due
+         può uscire, quindi conviene sempre averne un terzo in panchina.</p>
+    </div>
+
+    <p>Chi è tesserato con cosa si segna nella pagina
+       <a href="/squadra/">Squadra</a>: si tocca il nome e si spuntano le
+       tessere. Da lì il <a href="/calendario/">Calendario</a> conta da solo
+       quanti ANSPI hanno dato la disponibilità per ogni giornata, e lo dice
+       prima della partita invece che a bordo campo.</p>
+  </section>
+
+  <!-- ============================================================
+       Sotto questo punto il regolamento è ancora da inserire.
+       Per ogni capitolo nuovo, copia lo scheletro:
+
+         <section class="voce">
+           <h2>Titolo del capitolo</h2>
+           <p>Testo.</p>
+         </section>
+
+       Quando la pagina è piena, togli il riquadro "attesa" qui sotto.
+       ============================================================ -->
+  <section class="voce">
+    <h2>Il resto del regolamento</h2>
+    <div class="attesa">
+      <p><b>Ancora da inserire.</b> Questa pagina è pronta ad accoglierlo:
+         appena mi passi il testo lo sistemiamo insieme, capitolo per capitolo.</p>
+      <p style="margin:0">Nel frattempo qui sopra c'è quello che serve sapere
+         subito, cioè il vincolo sui tesserati ANSPI.</p>
+    </div>
+  </section>
+
+  <footer class="site-footer">Green Lions · <a href="/">torna alla home</a></footer>
+
+</div>
+
+</body>
+</html>

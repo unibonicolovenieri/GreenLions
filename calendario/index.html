@@ -55,6 +55,25 @@
     .chip.forse { background: #3a3010; color: #f0d375; }
   }
 
+  .chip.anspi { background: var(--accent-sf); color: var(--kit-verde); box-shadow: inset 0 0 0 1px currentColor; }
+  .chip.csi   { background: #e4ecfb; color: #2c5495; }
+  @media (prefers-color-scheme: dark) {
+    .chip.anspi { color: var(--accent); }
+    .chip.csi   { background: #1b2a45; color: #9dbdf0; }
+  }
+
+  /* la regola dei due ANSPI in campo */
+  .regola { margin: 10px 0 0; padding: 9px 12px; border-radius: 9px; font-size: 12.5px; line-height: 1.5; }
+  .regola a { color: inherit; }
+  .regola.ok     { background: var(--accent-sf); color: var(--kit-verde); }
+  .regola.limite { background: #fdf3d4; color: #7d6005; }
+  .regola.manca  { background: #fbeae9; color: #9d1a24; }
+  @media (prefers-color-scheme: dark) {
+    .regola.ok     { color: var(--accent); }
+    .regola.limite { background: #3a3010; color: #f0d375; }
+    .regola.manca  { background: #33191b; color: #f0999b; }
+  }
+
   .nomi { margin: 9px 0 0; font-size: 12.5px; color: var(--ink-3); line-height: 1.6; }
   .nomi b { color: var(--ink-2); font-weight: 600; }
 
@@ -311,6 +330,13 @@ function disegna() {
   if (passate.length)  elenco.appendChild(sezione('Già giocate', passate, true));
 }
 
+function chipTessera(classe, testo) {
+  const c = document.createElement('span');
+  c.className = 'chip ' + classe;
+  c.textContent = testo;
+  return c;
+}
+
 function sezione(titolo, lista, passata) {
   const s = document.createElement('section');
   s.className = 'gruppo';
@@ -339,6 +365,7 @@ function scheda(g, passata) {
       <p class="dettaglio"><span class="ora"></span> · <span class="luogo"></span></p>
       <p class="appunto" hidden></p>
       <div class="conteggi"></div>
+      <p class="regola" hidden></p>
       <p class="nomi" hidden></p>
       <div class="azioni-riga"></div>
     </div>`;
@@ -379,6 +406,36 @@ function scheda(g, passata) {
     chip.className = 'chip';
     chip.textContent = 'ancora nessuna risposta';
     conteggi.appendChild(chip);
+  }
+
+  // Quanti tesserati ci sono per davvero. Conta solo chi ha detto sì:
+  // un "forse" non basta a coprire un obbligo di regolamento.
+  const anspiSi    = risposte.filter(d => d.stato === 'si'    && d.tessera_anspi).length;
+  const anspiForse = risposte.filter(d => d.stato === 'forse' && d.tessera_anspi).length;
+  const csiSi      = risposte.filter(d => d.stato === 'si'    && d.tessera_csi).length;
+
+  if (anspiSi) conteggi.appendChild(chipTessera('anspi', anspiSi + ' ANSPI'));
+  if (csiSi)   conteggi.appendChild(chipTessera('csi',   csiSi + ' CSI'));
+
+  // L'avviso ha senso solo su quello che deve ancora succedere.
+  if (!annullata && !passata) {
+    const regola = carta.querySelector('.regola');
+    regola.hidden = false;
+    if (anspiSi >= 3) {
+      regola.className = 'regola ok';
+      regola.textContent = anspiSi + ' ANSPI disponibili: si possono alternare in campo.';
+    } else if (anspiSi === 2) {
+      regola.className = 'regola limite';
+      regola.textContent = 'Esattamente 2 ANSPI disponibili. Il minimo va tenuto per tutta la partita, ' +
+        'quindi devono giocarla intera tutti e due: nessuno dei due può uscire.';
+    } else {
+      regola.className = 'regola manca';
+      // solo numeri calcolati qui dentro, nessun testo scritto dagli utenti
+      regola.innerHTML = (anspiSi === 0 ? 'Nessun ANSPI disponibile' : '1 solo ANSPI disponibile') +
+        ': ne servono <b>almeno 2 in campo per tutta la partita</b>' +
+        (anspiForse ? ', e altri ' + anspiForse + ' hanno risposto forse' : '') +
+        '. <a href="/regolamento/">Regolamento</a>';
+    }
   }
 
   const dentro = risposte.filter(d => d.stato === 'si' || d.stato === 'forse');

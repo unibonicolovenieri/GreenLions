@@ -12,6 +12,7 @@ programmi installati: si aprono i file con un editor di testo e si salvano.
 | `/divise/` | prenotazione delle divise: si sceglie un numero libero e si lasciano i dati |
 | `/squadra/` | la rosa. Chi ha il codice della squadra può aggiungersi |
 | `/calendario/` | le giornate. Si dà la disponibilità e arriva l'invito da mettere in calendario; con il codice si creano e si modificano le giornate |
+| `/regolamento/` | le regole del campionato. Per ora c'è solo il vincolo sui tesserati ANSPI |
 
 Tutte e tre scrivono su Supabase e chiedono il **codice della squadra** per farlo:
 è quello che mandi nel gruppo. Senza, dal sito non si scrive niente.
@@ -25,6 +26,7 @@ Tutte e tre scrivono su Supabase e chiedono il **codice della squadra** per farl
 ├── divise/index.html     prenotazione divise (file unico e autonomo)
 ├── squadra/index.html
 ├── calendario/index.html
+├── regolamento/index.html
 ├── assets/
 │   ├── css/site.css      colori e stili comuni
 │   ├── js/supabase.js    lettura del database e chiamata alle sue funzioni
@@ -107,9 +109,21 @@ database, non la pagina: non si aggira smanettando col browser.
 | Vista (lettura) | Funzione (scrittura) |
 |---|---|
 | `kit_presi` | policy sulla tabella `prenotazioni` |
-| `rosa_pubblica` | `aggiungi_giocatore` |
+| `rosa_pubblica` | `aggiungi_giocatore`, `imposta_tessere` |
 | `calendario_pubblico` | `crea_giornata`, `modifica_giornata`, `annulla_giornata`, `elimina_giornata` |
 | `disponibilita_pubblica` | `segna_disponibilita` |
+
+### I tesserati ANSPI
+
+Ogni persona in rosa ha due caselle indipendenti, `tessera_anspi` e
+`tessera_csi` — due e non un unico campo "tipo tessera", perché capita di
+averle entrambe e il regolamento conta solo le ANSPI.
+
+Il calendario se ne serve da solo: per ogni giornata conta quanti ANSPI hanno
+detto **sì** (un "forse" non copre un obbligo di regolamento) e avvisa quando
+sono meno di due, o quando sono esattamente due e quindi devono giocare tutta
+la partita. Se il minimo cambia, va cambiato in due posti: `regolamento/index.html`
+e `calendario/index.html` (cerca `anspiSi`).
 
 ### Gli inviti al calendario
 
@@ -139,6 +153,7 @@ Confident/
 ├── schema.sql                          divise
 ├── schema-squadra-calendario.sql       rosa, giornate, disponibilità
 ├── aggiornamento-1-elimina-giornata.sql
+├── aggiornamento-2-tessere-e-import.sql   tessere ANSPI/CSI, rosa dalle divise
 ├── ISTRUZIONI.md                       come è stata messa online la pagina divise
 └── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
 ```

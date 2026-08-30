@@ -21,12 +21,34 @@
     letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3);
   }
   .rosa { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  /* la scheda è un pulsante: si tocca per cambiare il tesseramento */
   .giocatore {
-    display: flex; align-items: center; gap: 12px;
+    display: flex; align-items: center; gap: 12px; width: 100%;
     padding: 12px 14px; background: var(--surface);
     border: 1px solid var(--line); border-left: 4px solid var(--kit-verde);
     border-radius: 12px;
+    font: inherit; color: inherit; text-align: left; cursor: pointer;
+    transition: border-color .12s, transform .12s;
   }
+  .giocatore:hover { border-color: var(--kit-verde); transform: translateY(-1px); }
+  .giocatore:focus-visible { outline: 2px solid var(--kit-verde); outline-offset: 2px; }
+
+  .tessere { margin-left: auto; display: flex; gap: 4px; flex: none; }
+  .tes {
+    font: 800 9.5px/1 ui-sans-serif, system-ui, sans-serif; font-style: normal;
+    letter-spacing: .07em; padding: 4px 6px; border-radius: 5px;
+  }
+  .tes.anspi { background: var(--accent-sf); color: var(--kit-verde); }
+  .tes.csi   { background: #e4ecfb; color: #2c5495; }
+  .tes.nessuna { background: transparent; color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line); font-weight: 600; }
+  @media (prefers-color-scheme: dark) {
+    .tes.anspi { color: var(--accent); }
+    .tes.csi   { background: #1b2a45; color: #9dbdf0; }
+  }
+
+  .spunta { display: flex; gap: 10px; align-items: flex-start; font-size: 14.5px; font-weight: 600; color: var(--ink); margin: 0 0 12px; }
+  .spunta input { width: auto; margin: 2px 0 0; flex: none; accent-color: var(--kit-verde); }
+  .spunta small { display: block; font-weight: 400; font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
   .numero {
     flex: none; width: 38px; height: 38px; display: grid; place-items: center;
     border-radius: 10px; background: var(--kit-giallo); color: var(--kit-verde-s);
@@ -80,7 +102,7 @@
 
   <div id="elenco" class="caricamento"></div>
 
-  <p class="note" id="nota">Email e telefono servono per gli inviti alle partite e non compaiono da nessuna parte sul sito: si vedono solo dalla gestione.</p>
+  <p class="note" id="nota">Tocca una persona per segnare la sua tessera — serve il codice della squadra. Email e telefono non compaiono da nessuna parte sul sito: si vedono solo dalla gestione.</p>
 
   <footer class="site-footer">Green Lions · <a href="/">torna alla home</a></footer>
 
@@ -116,6 +138,15 @@
       <label><span>Numero <small>(se ce l'hai)</small></span><input name="numero" type="number" min="1" max="99" inputmode="numeric"></label>
     </div>
 
+    <label class="spunta">
+      <input type="checkbox" name="anspi">
+      <span>Tesserato ANSPI<small>Il regolamento chiede almeno due ANSPI in campo per tutta la partita.</small></span>
+    </label>
+    <label class="spunta">
+      <input type="checkbox" name="csi">
+      <span>Tesserato CSI</span>
+    </label>
+
     <label><span>Codice squadra</span><input name="codice" required maxlength="40" autocapitalize="characters" placeholder="quello scritto nel gruppo"></label>
 
     <label class="consenso">
@@ -126,6 +157,32 @@
     <div class="azioni">
       <button type="button" class="btn ghost" id="annulla">Annulla</button>
       <button type="submit" class="btn primary" id="conferma">Aggiungimi</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="finestraTessere">
+  <div class="testata"></div>
+  <form class="foglio" id="moduloTessere" novalidate>
+    <h2>Tesseramento</h2>
+    <p class="lede" id="tessereChi" style="text-align:left;margin:0 0 16px"></p>
+
+    <div class="msg err" id="erroreTessere"></div>
+
+    <label class="spunta">
+      <input type="checkbox" name="anspi">
+      <span>Tesserato ANSPI<small>Ne servono almeno due in campo per tutta la partita.</small></span>
+    </label>
+    <label class="spunta">
+      <input type="checkbox" name="csi">
+      <span>Tesserato CSI</span>
+    </label>
+
+    <label><span>Codice squadra</span><input name="codice" required maxlength="40" autocapitalize="characters" placeholder="quello scritto nel gruppo"></label>
+
+    <div class="azioni">
+      <button type="button" class="btn ghost" id="chiudiTessere">Annulla</button>
+      <button type="submit" class="btn primary" id="confermaTessere">Salva</button>
     </div>
   </form>
 </dialog>
@@ -176,8 +233,11 @@ function disegna() {
   elenco.classList.remove('caricamento');
   elenco.innerHTML = '';
 
+  const anspi = rosa.filter(g => g.tessera_anspi).length;
+  const csi   = rosa.filter(g => g.tessera_csi).length;
   document.getElementById('conto').innerHTML =
-    '<b>' + rosa.length + '</b> ' + (rosa.length === 1 ? 'persona in rosa' : 'in rosa');
+    '<b>' + rosa.length + '</b> ' + (rosa.length === 1 ? 'persona in rosa' : 'in rosa') +
+    (rosa.length ? ' <span style="color:var(--ink-3)">·</span> ' + anspi + ' ANSPI · ' + csi + ' CSI' : '');
 
   if (rosa.length === 0) {
     elenco.innerHTML = '<p class="vuoto">La rosa è ancora vuota. Il primo che si aggiunge apre le danze.</p>';
@@ -196,19 +256,101 @@ function disegna() {
     const lista = sezione.querySelector('ul');
     for (const g of dentro) {
       const voce = document.createElement('li');
-      voce.className = 'giocatore';
-      voce.innerHTML = '<span class="numero"></span><span class="chi"><b></b> <span class="cognome"></span><span class="ruolo"></span></span>';
-      const numero = voce.querySelector('.numero');
+      const scheda = document.createElement('button');
+      scheda.type = 'button';
+      scheda.className = 'giocatore';
+      scheda.innerHTML =
+        '<span class="numero"></span>' +
+        '<span class="chi"><b></b> <span class="cognome"></span><span class="ruolo"></span></span>' +
+        '<span class="tessere"></span>';
+
+      const numero = scheda.querySelector('.numero');
       numero.textContent = g.numero ?? '–';
       if (g.numero == null) numero.classList.add('senza');
-      voce.querySelector('b').textContent = g.nome;
-      voce.querySelector('.cognome').textContent = g.iniziale;
-      voce.querySelector('.ruolo').textContent = g.ruolo;
+      scheda.querySelector('b').textContent = g.nome;
+      scheda.querySelector('.cognome').textContent = g.iniziale;
+      scheda.querySelector('.ruolo').textContent = g.ruolo;
+
+      const tessere = scheda.querySelector('.tessere');
+      if (g.tessera_anspi) tessere.appendChild(bollino('anspi', 'ANSPI'));
+      if (g.tessera_csi)   tessere.appendChild(bollino('csi', 'CSI'));
+      if (!g.tessera_anspi && !g.tessera_csi) tessere.appendChild(bollino('nessuna', 'no tessera'));
+
+      scheda.setAttribute('aria-label',
+        'Tesseramento di ' + g.nome + ' ' + g.iniziale + ': ' +
+        (g.tessera_anspi ? 'ANSPI ' : '') + (g.tessera_csi ? 'CSI' : '') +
+        (!g.tessera_anspi && !g.tessera_csi ? 'nessuna tessera' : ''));
+      scheda.onclick = () => apriTessere(g);
+
+      voce.appendChild(scheda);
       lista.appendChild(voce);
     }
     elenco.appendChild(sezione);
   }
 }
+
+function bollino(classe, testo) {
+  const b = document.createElement('i');
+  b.className = 'tes ' + classe;
+  b.textContent = testo;
+  return b;
+}
+
+/* ---------------- tesseramento ---------------- */
+
+const finestraTessere = document.getElementById('finestraTessere');
+const moduloTessere   = document.getElementById('moduloTessere');
+const erroreTessere   = document.getElementById('erroreTessere');
+const confermaTessere = document.getElementById('confermaTessere');
+let giocatoreScelto = null;
+
+function apriTessere(g) {
+  giocatoreScelto = g;
+  erroreTessere.classList.remove('mostra');
+  moduloTessere.reset();
+  document.getElementById('tessereChi').textContent =
+    g.nome + ' ' + g.iniziale + (g.numero != null ? ' · numero ' + g.numero : '');
+  moduloTessere.elements.anspi.checked = !!g.tessera_anspi;
+  moduloTessere.elements.csi.checked   = !!g.tessera_csi;
+  finestraTessere.showModal();
+}
+
+document.getElementById('chiudiTessere').onclick = () => finestraTessere.close();
+
+moduloTessere.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  erroreTessere.classList.remove('mostra');
+
+  const codice = moduloTessere.elements.codice.value.trim();
+  if (!codice) {
+    erroreTessere.textContent = 'Manca il codice squadra.';
+    erroreTessere.classList.add('mostra');
+    return;
+  }
+
+  confermaTessere.disabled = true;
+  confermaTessere.textContent = 'Un attimo…';
+
+  try {
+    await glChiama('imposta_tessere', {
+      _codice: codice,
+      _giocatore_id: giocatoreScelto.id,
+      _anspi: moduloTessere.elements.anspi.checked,
+      _csi:   moduloTessere.elements.csi.checked
+    });
+
+    finestraTessere.close();
+    esito.textContent = 'Tesseramento aggiornato per ' + giocatoreScelto.nome + '.';
+    esito.classList.add('mostra');
+    await carica();
+  } catch (e) {
+    erroreTessere.textContent = glMessaggio(e);
+    erroreTessere.classList.add('mostra');
+  } finally {
+    confermaTessere.disabled = false;
+    confermaTessere.textContent = 'Salva';
+  }
+});
 
 function mostraErrore(testo) {
   errore.textContent = testo;
@@ -250,7 +392,9 @@ modulo.addEventListener('submit', async ev => {
       _email:    d.email,
       _ruolo:    d.ruolo,
       _numero:   d.numero ? Number(d.numero) : null,
-      _telefono: d.telefono || null
+      _telefono: d.telefono || null,
+      _anspi:    modulo.elements.anspi.checked,
+      _csi:      modulo.elements.csi.checked
     });
 
     finestra.close();
