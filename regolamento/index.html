@@ -47,6 +47,54 @@
   }
   @media (prefers-color-scheme: dark) { .chiave .tes { color: var(--accent); } }
 
+  /* ---- i tre gironi ---- */
+  .gironi { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 11px; margin: 0 0 6px; }
+  .girone {
+    padding: 14px 16px; background: var(--surface);
+    border: 1px solid var(--line); border-top: 4px solid var(--kit-verde);
+    border-radius: 12px;
+  }
+  .girone h3 {
+    margin: 0 0 9px; font-size: 11px; font-weight: 800;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .girone ol { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.75; }
+  .girone li::marker { color: var(--ink-3); font-size: 12px; }
+  .girone .noi { font-weight: 800; color: var(--kit-verde); }
+  @media (prefers-color-scheme: dark) { .girone .noi { color: var(--accent); } }
+
+  /* ---- il percorso verso la finale, letto dall'alto in basso ---- */
+  .fase {
+    position: relative; padding: 14px 17px; margin: 0 0 10px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 5px solid var(--kit-verde); border-radius: 12px;
+  }
+  .fase.uscita { border-left-color: var(--kit-rosso); }
+  .fase.traguardo { border-left-color: var(--kit-giallo); background: var(--surface-2); }
+  .fase h3 { margin: 0 0 5px; font-size: 15.5px; letter-spacing: -.01em; }
+  .fase p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.6; }
+  .fase .quante {
+    float: right; margin-left: 12px;
+    font: 800 10px/1 ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: 5px 8px; border-radius: 999px;
+    background: var(--accent-sf); color: var(--kit-verde);
+  }
+  @media (prefers-color-scheme: dark) { .fase .quante { color: var(--accent); } }
+
+  .giu { text-align: center; color: var(--ink-3); font-size: 17px; line-height: 1; margin: 0 0 10px; }
+
+  /* ---- quello che resta da chiarire ---- */
+  .dubbi { margin: 0; padding: 0; list-style: none; }
+  .dubbi li {
+    padding: 13px 15px; margin: 0 0 9px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 4px solid var(--kit-azzurro); border-radius: 10px;
+    font-size: 14px; line-height: 1.6;
+  }
+  .dubbi b { display: block; margin-bottom: 3px; font-size: 14.5px; color: var(--ink); }
+  .dubbi span { color: var(--ink-2); }
+
   .attesa {
     padding: 24px 22px; border: 1px dashed var(--line); border-radius: var(--radius);
     background: var(--surface); color: var(--ink-2); font-size: 14.5px; line-height: 1.6;
@@ -85,11 +133,113 @@
   </header>
 
   <!-- ============================================================
-       Questa è l'unica regola già nota, ed è anche l'unica che il
-       sito controlla da solo: la pagina Calendario conta gli ANSPI
-       disponibili per ogni giornata e avvisa quando sono meno di due.
-       Se il numero minimo cambia, va cambiato in due posti: qui e in
-       calendario/index.html (cerca "anspiSi").
+       IL CAMPIONATO
+       Ricostruito dal messaggio della lega: 11 squadre, tre gironi,
+       tre squadre eliminate, otto che proseguono. I punti che il
+       messaggio non chiariva sono raccolti in fondo alla pagina.
+       ============================================================ -->
+  <section class="voce">
+    <h2>Le squadre</h2>
+    <p>Undici squadre maschili divise in tre gironi. Noi siamo nel girone B.</p>
+
+    <div class="gironi">
+      <div class="girone">
+        <h3>Girone A · 4 squadre</h3>
+        <ol>
+          <li>CL</li>
+          <li>Cappuccini</li>
+          <li>DandyLions</li>
+          <li>Oratorio Cittadino</li>
+        </ol>
+      </div>
+      <div class="girone">
+        <h3>Girone B · 4 squadre</h3>
+        <ol>
+          <li class="noi">Green Lions</li>
+          <li>Smama</li>
+          <li>Oratorio San Pier Damiani</li>
+          <li>Paradiso</li>
+        </ol>
+      </div>
+      <div class="girone">
+        <h3>Girone C · 3 squadre</h3>
+        <ol>
+          <li>Scout Modigliana</li>
+          <li>Purple Boys</li>
+          <li>Errano</li>
+        </ol>
+      </div>
+    </div>
+    <p style="font-size:13.5px;color:var(--ink-2)">L'elenco delle giornate arriverà più avanti: quando c'è,
+       finisce nel <a href="/calendario/">Calendario</a>.</p>
+  </section>
+
+  <section class="voce">
+    <h2>Come si arriva alla finale</h2>
+
+    <p>Il passaggio che confonde è il secondo: non tutte le eliminate escono per
+       posizione: una esce <b>per differenza reti</b>, confrontando due gironi diversi.
+       Da lì in poi è un imbuto normale.</p>
+
+    <div class="fase">
+      <span class="quante">11 squadre</span>
+      <h3>Fase a gironi</h3>
+      <p>Girone all'italiana: dentro ogni girone tutte contro tutte.</p>
+    </div>
+    <p class="giu">↓</p>
+
+    <div class="fase uscita">
+      <span class="quante">−3</span>
+      <h3>Chi esce</h3>
+      <p>Escono le due <b>quarte</b> dei gironi da 4. Poi si guardano le due <b>terze</b>
+         dei gironi da 4, si confronta la loro differenza reti e la peggiore delle due
+         esce. Il girone C, che ha solo 3 squadre, resta intero.</p>
+    </div>
+    <p class="giu">↓</p>
+
+    <div class="fase">
+      <span class="quante">8 squadre</span>
+      <h3>Chi resta</h3>
+      <p>Le tre del girone C, e dai gironi da 4 una squadra passa in tre e l'altra in due
+         — a seconda di quale delle due terze è sopravvissuta.</p>
+    </div>
+    <p class="giu">↓</p>
+
+    <div class="fase">
+      <span class="quante">spareggio</span>
+      <h3>Le due terze si sfidano</h3>
+      <p>La terza rimasta dei gironi da 4 contro la terza del girone C. Una sola partita:
+         chi vince prosegue, chi perde è fuori.</p>
+    </div>
+    <p class="giu">↓</p>
+
+    <div class="fase">
+      <span class="quante">quarti</span>
+      <h3>Il quadrangolare delle seconde</h3>
+      <p>Chi ha vinto lo spareggio si aggiunge alle <b>tre seconde</b> dei gironi: quattro
+         squadre che si affrontano a due a due. Da qui esce <b>una</b> squadra sola, ed è
+         l'ultima a prendersi il posto in semifinale.</p>
+    </div>
+    <p class="giu">↓</p>
+
+    <div class="fase traguardo">
+      <span class="quante">semifinali</span>
+      <h3>Le tre prime, più una</h3>
+      <p>Le <b>prime</b> dei tre gironi sono già in semifinale da quando è finita la fase
+         a gironi: non giocano né spareggio né quarti. La quarta semifinalista è chi è
+         uscita dal quadrangolare.</p>
+    </div>
+    <p class="giu">↓</p>
+
+    <div class="fase traguardo">
+      <span class="quante">finale</span>
+      <h3>Finale</h3>
+      <p>Le due vincenti delle semifinali.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       REGOLE DI GIOCO
        ============================================================ -->
   <section class="voce">
     <h2>Tesseramento</h2>
@@ -102,6 +252,13 @@
          può uscire, quindi conviene sempre averne un terzo in panchina.</p>
     </div>
 
+    <div class="chiave" style="border-left-color:var(--kit-rosso)">
+      <h3>Massimo due tesserati FIGC maggiorenni, più un minorenne</h3>
+      <p>Questo è un tetto, non un minimo: si può averne meno, mai di più.
+         Vale per squadra, ed è l'unico limite che riguarda chi gioca anche
+         a livello federale.</p>
+    </div>
+
     <p>Chi è tesserato con cosa si segna nella pagina
        <a href="/squadra/">Squadra</a>: si tocca il nome e si spuntano le
        tessere. Da lì il <a href="/calendario/">Calendario</a> conta da solo
@@ -109,25 +266,64 @@
        prima della partita invece che a bordo campo.</p>
   </section>
 
+  <section class="voce">
+    <h2>La partita</h2>
+    <ul>
+      <li>Due tempi da <b>25 minuti</b>.</li>
+      <li><b>Niente fuorigioco.</b></li>
+      <li>È previsto il <b>cartellino blu</b>, cioè l'espulsione temporanea:
+          chi lo prende esce per un po' e la squadra resta in inferiorità
+          numerica, poi rientra.</li>
+      <li>Si può giocare <b>fino a un minimo di 5 giocatori</b>: sotto quel numero
+          la partita non sta in piedi. Attenzione che il vincolo dei due ANSPI
+          in campo vale anche quando si è in cinque.</li>
+      <li><b>Parastinchi obbligatori.</b> Tacchetti sì, ma <b>non di ferro</b>.</li>
+      <li>I palloni del riscaldamento se li porta ogni squadra: <b>i nostri sono i nostri</b>.</li>
+    </ul>
+  </section>
+
+  <section class="voce">
+    <h2>Prima di scendere in campo</h2>
+    <ul>
+      <li><b>Certificato medico.</b> La lega ci ha tenuto a sottolinearlo: senza, non si gioca.</li>
+      <li><b>Documento d'identità sempre con sé</b>, a ogni partita. Può essere chiesto per il
+          riconoscimento.</li>
+      <li><b>Gli spostamenti non si chiedono alla lega.</b> Se proprio serve muovere una partita,
+          ci si accorda direttamente con il presidente dell'altra squadra.</li>
+    </ul>
+  </section>
+
   <!-- ============================================================
-       Sotto questo punto il regolamento è ancora da inserire.
-       Per ogni capitolo nuovo, copia lo scheletro:
-
-         <section class="voce">
-           <h2>Titolo del capitolo</h2>
-           <p>Testo.</p>
-         </section>
-
-       Quando la pagina è piena, togli il riquadro "attesa" qui sotto.
+       Da chiarire con la lega. Man mano che arrivano le risposte,
+       la voce si toglie da qui e si scrive sopra come regola.
        ============================================================ -->
   <section class="voce">
-    <h2>Il resto del regolamento</h2>
-    <div class="attesa">
-      <p><b>Ancora da inserire.</b> Questa pagina è pronta ad accoglierlo:
-         appena mi passi il testo lo sistemiamo insieme, capitolo per capitolo.</p>
-      <p style="margin:0">Nel frattempo qui sopra c'è quello che serve sapere
-         subito, cioè il vincolo sui tesserati ANSPI.</p>
-    </div>
+    <h2>Da farsi confermare</h2>
+    <p>Punti che dal messaggio non si ricavano con certezza. Meglio chiederli adesso
+       che scoprirli a bordo campo.</p>
+
+    <ul class="dubbi">
+      <li><b>Il quadrangolare, come funziona esattamente</b>
+        <span>Quattro squadre "a due a due" da cui ne esce una: quindi due partite e poi le
+        due vincenti si sfidano fra loro? È la lettura che ho dato alla pagina, ma è
+        l'unico punto dove il conto può tornare in più modi.</span></li>
+
+      <li><b>Il limite FIGC vale in campo o in distinta</b>
+        <span>Due maggiorenni più un minorenne: è il massimo che si può schierare
+        contemporaneamente, o il massimo che si può portare alla partita? Per l'ANSPI la
+        regola dice esplicitamente "in campo", per questa no.</span></li>
+
+      <li><b>Quanto dura il cartellino blu</b>
+        <span>Il messaggio dice che c'è, non per quanti minuti si resta fuori.</span></li>
+
+      <li><b>Se le due terze hanno la stessa differenza reti</b>
+        <span>Chi passa? Scontro diretto, gol fatti, sorteggio? Le due terze sono in gironi
+        diversi, quindi lo scontro diretto non esiste.</span></li>
+
+      <li><b>"Si può giocare fino a 5 giocatori"</b>
+        <span>L'ho letto come il minimo per stare in campo. Da confermare che non voglia
+        dire un'altra cosa.</span></li>
+    </ul>
   </section>
 
   <footer class="site-footer">Green Lions · <a href="/">torna alla home</a></footer>
