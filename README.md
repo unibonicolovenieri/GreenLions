@@ -112,6 +112,7 @@ database, non la pagina: non si aggira smanettando col browser.
 | `rosa_pubblica` | `aggiungi_giocatore`, `imposta_tessere` |
 | `calendario_pubblico` | `crea_giornata`, `modifica_giornata`, `annulla_giornata`, `elimina_giornata` |
 | `disponibilita_pubblica` | `segna_disponibilita` |
+| — (solo funzione) | `distinta` |
 
 ### I tesserati ANSPI
 
@@ -124,6 +125,21 @@ detto **sì** (un "forse" non copre un obbligo di regolamento) e avvisa quando
 sono meno di due, o quando sono esattamente due e quindi devono giocare tutta
 la partita. Se il minimo cambia, va cambiato in due posti: `regolamento/index.html`
 e `calendario/index.html` (cerca `anspiSi`).
+
+### La distinta
+
+Dal calendario, su ogni giornata, c'è il pulsante **Distinta**: chiede il codice
+e mostra chi ha dato la disponibilità con numero di maglia, nome e cognome per
+esteso e tessere. Da lì si stampa un foglio da portare al campo, con una casella
+da spuntare per chi si presenta.
+
+Il cognome per esteso arriva dalla funzione `distinta`, non dalle viste
+pubbliche: quelle danno apposta solo nome e iniziale, perché le legge chiunque
+apra il sito. All'arbitro però non presenti "Nicolò V.", quindi il cognome esce
+da una funzione che prima chiede il codice della squadra.
+
+La stampa non usa una pagina a parte: c'è un `@media print` che toglie di mezzo
+tutto il resto e lascia solo il foglio, riempito al momento in `#stampa`.
 
 ### Gli inviti al calendario
 
@@ -154,6 +170,7 @@ Confident/
 ├── schema-squadra-calendario.sql       rosa, giornate, disponibilità
 ├── aggiornamento-1-elimina-giornata.sql
 ├── aggiornamento-2-tessere-e-import.sql   tessere ANSPI/CSI, rosa dalle divise
+├── aggiornamento-3-distinta.sql
 ├── ISTRUZIONI.md                       come è stata messa online la pagina divise
 └── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
 ```

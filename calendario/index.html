@@ -88,6 +88,55 @@
   @media (prefers-color-scheme: dark) { .stato-bollo { background: #33191b; color: #f0999b; } }
 
   #esito { margin: 0 0 16px; }
+
+  /* ---- la distinta a schermo ---- */
+  .distinta { list-style: none; margin: 0 0 4px; padding: 0; }
+  .distinta li {
+    display: flex; align-items: center; gap: 11px;
+    padding: 9px 11px; margin: 0 0 6px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 9px;
+  }
+  .distinta .maglia {
+    flex: none; width: 30px; height: 30px; display: grid; place-items: center;
+    border-radius: 8px; background: var(--kit-giallo); color: var(--kit-verde-s);
+    font-weight: 800; font-size: 14px; font-variant-numeric: tabular-nums;
+  }
+  .distinta .maglia.senza { background: var(--surface-2); color: var(--ink-3); }
+  .distinta .chi { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 600; }
+  .distinta .chi em { font-style: normal; font-weight: 400; font-size: 12.5px; color: var(--ink-3); }
+  .distinta .bolli { display: flex; gap: 4px; flex: none; }
+  .riassunto { margin: 12px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+
+  /* ============================================================
+     Il foglio da portare al campo.
+     A schermo non esiste; in stampa è l'unica cosa che resta,
+     perché tutto il resto della pagina viene tolto di mezzo.
+     ============================================================ */
+  #stampa { display: none; }
+
+  @media print {
+    body > *:not(#stampa) { display: none !important; }
+    dialog::backdrop { display: none !important; }
+    #stampa { display: block !important; }
+
+    @page { margin: 14mm; }
+    body { background: #fff; color: #000; }
+
+    #stampa { font: 11pt/1.45 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #000; }
+    #stampa h1 { font-size: 16pt; margin: 0 0 1mm; letter-spacing: -.01em; }
+    #stampa .quando { margin: 0 0 7mm; font-size: 10.5pt; }
+    #stampa table { width: 100%; border-collapse: collapse; }
+    #stampa th, #stampa td { border: 1px solid #000; padding: 2.4mm 3mm; text-align: left; }
+    #stampa th {
+      font-size: 8.5pt; text-transform: uppercase; letter-spacing: .07em;
+      background: #ececec; -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    #stampa td.casella { width: 9mm; }
+    #stampa td.num { width: 12mm; font-weight: 700; text-align: center; }
+    #stampa tr.forse td { color: #444; }
+    #stampa .riassunto { margin: 6mm 0 0; font-size: 10pt; color: #000; }
+    #stampa .avvertenza { margin: 2mm 0 0; font-size: 10pt; font-weight: 700; }
+  }
   .separa { margin: 16px 0 0; padding-top: 15px; border-top: 1px solid var(--line); }
 </style>
 </head>
@@ -222,6 +271,40 @@
     </div>
   </form>
 </dialog>
+
+<dialog id="finestraDistinta">
+  <div class="testata"></div>
+  <div class="foglio">
+    <h2>Distinta</h2>
+    <p class="dettaglio" id="distintaQuale" style="margin:0 0 16px"></p>
+
+    <div class="msg err" id="erroreDistinta"></div>
+
+    <form id="moduloDistinta" novalidate>
+      <label><span>Codice squadra</span>
+        <input name="codice" required maxlength="40" autocapitalize="characters" placeholder="quello scritto nel gruppo">
+      </label>
+      <p class="appunto" style="margin:-4px 0 14px">Serve il codice perché la distinta riporta i cognomi
+         per esteso, che sul sito non si vedono.</p>
+      <div class="azioni">
+        <button type="button" class="btn ghost" id="chiudiDistinta">Chiudi</button>
+        <button type="submit" class="btn primary" id="confermaDistinta">Mostra</button>
+      </div>
+    </form>
+
+    <div id="distintaCorpo" hidden>
+      <ul class="distinta" id="distintaElenco"></ul>
+      <p class="riassunto" id="distintaRiassunto"></p>
+      <div class="azioni" style="margin-top:16px">
+        <button type="button" class="btn ghost" id="chiudiDistinta2">Chiudi</button>
+        <button type="button" class="btn primary" id="stampaDistinta">Stampa</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- Riempito al volo quando si chiede la distinta: è quello che finisce sulla carta. -->
+<div id="stampa" aria-hidden="true"></div>
 
 <script src="/assets/js/supabase.js"></script>
 <script>
@@ -458,6 +541,17 @@ function scheda(g, passata) {
     azioni.appendChild(rispondi);
   }
 
+  // La distinta serve prima della partita, ma anche dopo per ricontrollare
+  // chi c'era: la si tiene su tutto quello che non è stato annullato.
+  if (!annullata) {
+    const distinta = document.createElement('button');
+    distinta.type = 'button';
+    distinta.className = 'btn ghost piccolo';
+    distinta.textContent = 'Distinta';
+    distinta.onclick = () => apriDistinta(g);
+    azioni.appendChild(distinta);
+  }
+
   // La gestione invece serve sempre: se sbagli l'anno, la giornata finisce
   // tra le passate, e senza questo pulsante non ci sarebbe più modo di
   // correggerla o di toglierla di mezzo.
@@ -532,6 +626,163 @@ moduloDisp.addEventListener('submit', async ev => {
     confermaDisp.textContent = 'Conferma';
   }
 });
+
+/* ---------------- la distinta ---------------- */
+
+const finestraDistinta = document.getElementById('finestraDistinta');
+const moduloDistinta   = document.getElementById('moduloDistinta');
+const erroreDistinta   = document.getElementById('erroreDistinta');
+const confermaDistinta = document.getElementById('confermaDistinta');
+let distintaGiornata = null;
+
+function apriDistinta(g) {
+  distintaGiornata = g;
+  erroreDistinta.classList.remove('mostra');
+  moduloDistinta.reset();
+  moduloDistinta.hidden = false;
+  document.getElementById('distintaCorpo').hidden = true;
+
+  document.getElementById('distintaQuale').textContent =
+    nomeGiornata(g) + ' · ' + fmt(g.inizio, { weekday: 'long', day: 'numeric', month: 'long' }) +
+    ', ore ' + fmt(g.inizio, { hour: '2-digit', minute: '2-digit' });
+
+  finestraDistinta.showModal();
+  moduloDistinta.querySelector('[name=codice]').focus();
+}
+
+moduloDistinta.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  erroreDistinta.classList.remove('mostra');
+
+  const codice = moduloDistinta.elements.codice.value.trim();
+  if (!codice) return erroreIn(erroreDistinta, 'Manca il codice squadra.');
+
+  confermaDistinta.disabled = true;
+  confermaDistinta.textContent = 'Un attimo…';
+
+  try {
+    const righe = await glChiama('distinta', {
+      _codice: codice,
+      _giornata_id: distintaGiornata.id
+    });
+    disegnaDistinta(distintaGiornata, righe || []);
+    moduloDistinta.hidden = true;
+    document.getElementById('distintaCorpo').hidden = false;
+  } catch (e) {
+    erroreIn(erroreDistinta, glMessaggio(e));
+  } finally {
+    confermaDistinta.disabled = false;
+    confermaDistinta.textContent = 'Mostra';
+  }
+});
+
+/** Il nome della tessera, per esteso, come va scritto sulla distinta. */
+function tessereDi(r) {
+  const t = [];
+  if (r.tessera_anspi) t.push('ANSPI');
+  if (r.tessera_csi)   t.push('CSI');
+  return t.length ? t.join(' + ') : '—';
+}
+
+function disegnaDistinta(g, righe) {
+  const elenco = document.getElementById('distintaElenco');
+  elenco.innerHTML = '';
+
+  for (const r of righe) {
+    const voce = document.createElement('li');
+    voce.innerHTML = '<span class="maglia"></span><span class="chi"></span><span class="bolli"></span>';
+
+    const maglia = voce.querySelector('.maglia');
+    maglia.textContent = r.numero ?? '–';
+    if (r.numero == null) maglia.classList.add('senza');
+
+    const chi = voce.querySelector('.chi');
+    chi.textContent = r.nome + ' ' + r.cognome + ' ';
+    if (r.stato === 'forse') {
+      const nota = document.createElement('em');
+      nota.textContent = '(forse)';
+      chi.appendChild(nota);
+    }
+
+    const bolli = voce.querySelector('.bolli');
+    if (r.tessera_anspi) bolli.appendChild(chipTessera('anspi', 'ANSPI'));
+    if (r.tessera_csi)   bolli.appendChild(chipTessera('csi', 'CSI'));
+
+    elenco.appendChild(voce);
+  }
+
+  const sicuri   = righe.filter(r => r.stato === 'si').length;
+  const forse    = righe.filter(r => r.stato === 'forse').length;
+  const anspiSi  = righe.filter(r => r.stato === 'si' && r.tessera_anspi).length;
+  const csiSi    = righe.filter(r => r.stato === 'si' && r.tessera_csi).length;
+
+  const riassunto = sicuri + (sicuri === 1 ? ' giocatore sicuro' : ' giocatori sicuri') +
+    (forse ? ', più ' + forse + ' in forse' : '') +
+    ' · ' + anspiSi + ' ANSPI · ' + csiSi + ' CSI';
+
+  document.getElementById('distintaRiassunto').textContent = righe.length
+    ? riassunto
+    : 'Per questa giornata non ha ancora risposto nessuno.';
+
+  costruisciFoglio(g, righe, { sicuri, forse, anspiSi, csiSi, riassunto });
+}
+
+/** Prepara il foglio che esce dalla stampante. */
+function costruisciFoglio(g, righe, conti) {
+  const foglio = document.getElementById('stampa');
+  foglio.innerHTML = '';
+
+  const titolo = document.createElement('h1');
+  titolo.textContent = 'Green Lions · distinta';
+  foglio.appendChild(titolo);
+
+  const quando = document.createElement('p');
+  quando.className = 'quando';
+  quando.textContent =
+    nomeGiornata(g) + ' — ' +
+    fmt(g.inizio, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) +
+    ', ore ' + fmt(g.inizio, { hour: '2-digit', minute: '2-digit' }) + ' · ' +
+    (g.indirizzo ? g.luogo + ', ' + g.indirizzo : g.luogo);
+  foglio.appendChild(quando);
+
+  const tabella = document.createElement('table');
+  tabella.innerHTML =
+    '<thead><tr><th></th><th>N.</th><th>Nome e cognome</th><th>Tessera</th></tr></thead><tbody></tbody>';
+  const corpo = tabella.querySelector('tbody');
+
+  for (const r of righe) {
+    const riga = document.createElement('tr');
+    if (r.stato === 'forse') riga.className = 'forse';
+    riga.innerHTML = '<td class="casella"></td><td class="num"></td><td></td><td></td>';
+    const celle = riga.querySelectorAll('td');
+    celle[1].textContent = r.numero ?? '';
+    celle[2].textContent = r.nome + ' ' + r.cognome + (r.stato === 'forse' ? ' (forse)' : '');
+    celle[3].textContent = tessereDi(r);
+    corpo.appendChild(riga);
+  }
+  foglio.appendChild(tabella);
+
+  const riassunto = document.createElement('p');
+  riassunto.className = 'riassunto';
+  riassunto.textContent = righe.length
+    ? conti.riassunto + '. La casella a sinistra serve per spuntare chi si presenta.'
+    : 'Nessuna disponibilità registrata per questa giornata.';
+  foglio.appendChild(riassunto);
+
+  // il vincolo che si scopre a bordo campo se non lo si è guardato prima
+  if (conti.anspiSi < 2) {
+    const avvertenza = document.createElement('p');
+    avvertenza.className = 'avvertenza';
+    avvertenza.textContent =
+      'ATTENZIONE: servono almeno 2 tesserati ANSPI in campo per tutta la partita, e qui ce ne sono ' +
+      conti.anspiSi + '.';
+    foglio.appendChild(avvertenza);
+  }
+}
+
+document.getElementById('stampaDistinta').onclick = () => window.print();
+document.getElementById('chiudiDistinta').onclick  = () => finestraDistinta.close();
+document.getElementById('chiudiDistinta2').onclick = () => finestraDistinta.close();
 
 /* ---------------- creare e modificare una giornata ---------------- */
 
