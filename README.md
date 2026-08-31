@@ -119,7 +119,7 @@ database, non la pagina: non si aggira smanettando col browser.
 | Vista (lettura) | Funzione (scrittura) |
 |---|---|
 | `kit_presi` | policy sulla tabella `prenotazioni` |
-| `rosa_pubblica` | `aggiungi_giocatore`, `imposta_tessere` |
+| `rosa_pubblica` | `aggiungi_giocatore`, `imposta_scheda` |
 | `calendario_pubblico` | `crea_giornata`, `modifica_giornata`, `annulla_giornata`, `elimina_giornata` |
 | `disponibilita_pubblica` | `segna_disponibilita` |
 | — (solo funzione) | `distinta`, `da_sollecitare` |
@@ -151,6 +151,27 @@ da una funzione che prima chiede il codice della squadra.
 
 La stampa non usa una pagina a parte: c'è un `@media print` che toglie di mezzo
 tutto il resto e lascia solo il foglio, riempito al momento in `#stampa`.
+
+### La visita medica
+
+Ogni persona in rosa ha `visita_scadenza`, una **data**: quella scritta sul
+certificato. Non una casella "ce l'ha", che diventerebbe falsa da sola il giorno
+della scadenza senza che nessuno se ne accorga.
+
+**Senza certificato valido non si dà la disponibilità**, e il divieto sta nel
+database dentro `segna_disponibilita`: è un vincolo che riguarda la salute di
+qualcuno, non un dettaglio di interfaccia da poter aggirare col browser. Il
+confronto è con **il giorno della partita**, non con oggi: un certificato che
+scade fra una settimana non serve per una partita fra un mese.
+
+Il "non ci sono" resta sempre possibile — chi non può giocare deve comunque poter
+far sapere che non c'è. La pagina lo dice appena scegli il nome, invece di far
+compilare il modulo per poi rifiutarlo.
+
+La scadenza si segna dalla scheda del giocatore, e vuole il **codice di
+gestione**: chi è sbarrato non deve poter alzare da sé la sbarra. Nella stessa
+scheda ci sono anche le tessere; se preferisci che i giocatori se le dichiarino
+da soli col codice di squadra, è una riga in `imposta_scheda`.
 
 ### I solleciti
 
@@ -217,6 +238,7 @@ Confident/
 ├── aggiornamento-4-codice-admin.sql        il secondo codice
 ├── aggiornamento-5-solleciti.sql
 ├── aggiornamento-6-risultati-classifica.sql
+├── aggiornamento-7-visita-medica.sql
 ├── ISTRUZIONI.md                       come è stata messa online la pagina divise
 └── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
 ```

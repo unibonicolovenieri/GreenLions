@@ -56,6 +56,8 @@
   }
 
   .chip.anspi { background: var(--accent-sf); color: var(--kit-verde); box-shadow: inset 0 0 0 1px currentColor; }
+  .chip.visita { background: #fbeae9; color: #9d1a24; }
+  @media (prefers-color-scheme: dark) { .chip.visita { background: #33191b; color: #f0999b; } }
   .chip.csi   { background: #e4ecfb; color: #2c5495; }
   @media (prefers-color-scheme: dark) {
     .chip.anspi { color: var(--accent); }
@@ -212,6 +214,8 @@
     <label><span>Chi sei</span>
       <select name="giocatore" id="scegliGiocatore" required></select>
     </label>
+
+    <div class="msg err" id="avvisoVisita"></div>
 
     <div class="scelta">
       <label><input type="radio" name="stato" value="si" checked><span>Ci sono</span></label>
@@ -641,8 +645,48 @@ function apriDisponibilita(g) {
     }
   }
 
+  controllaVisita();
   finestraDisp.showModal();
 }
+
+/** Una data 2026-11-30 scritta come si legge. */
+const dataScritta = (iso) =>
+  new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
+    .format(new Date(iso + 'T00:00'));
+
+/**
+ * Senza certificato medico valido il giorno della partita non si può
+ * essere disponibili. Il divieto vero sta nel database; qui lo si dice
+ * prima, invece di far compilare il modulo per poi rifiutarlo.
+ *
+ * "Non ci sono" resta sempre selezionabile: chi non può giocare deve
+ * comunque poter far sapere che non c'è.
+ */
+function controllaVisita() {
+  const avviso = document.getElementById('avvisoVisita');
+  const siForse = [...moduloDisp.querySelectorAll('input[name=stato]')].filter(r => r.value !== 'no');
+
+  avviso.classList.remove('mostra');
+  for (const r of siForse) { r.disabled = false; r.parentElement.style.opacity = ''; }
+
+  const p = rosa.find(r => String(r.id) === document.getElementById('scegliGiocatore').value);
+  if (!p || !dispScelta) return;
+
+  // la data della partita, non quella di oggi
+  const giorno = perIlModulo(dispScelta.inizio).slice(0, 10);
+  if (p.visita_scadenza && p.visita_scadenza >= giorno) return;
+
+  avviso.textContent = p.visita_scadenza
+    ? 'Il certificato medico di ' + p.nome + ' scade il ' + dataScritta(p.visita_scadenza) +
+      ', prima di questa partita. Finché non è rinnovato si può solo segnare che non ci sei.'
+    : 'Per ' + p.nome + ' non risulta il certificato medico. Finché manca si può solo segnare che non ci sei.';
+  avviso.classList.add('mostra');
+
+  for (const r of siForse) { r.disabled = true; r.parentElement.style.opacity = '.45'; }
+  moduloDisp.querySelector('input[name=stato][value=no]').checked = true;
+}
+
+document.getElementById('scegliGiocatore').onchange = controllaVisita;
 
 moduloDisp.addEventListener('submit', async ev => {
   ev.preventDefault();
@@ -880,6 +924,10 @@ function tessereDi(r) {
   return t.length ? t.join(' + ') : '—';
 }
 
+/** Il certificato copre il giorno della partita? */
+const copertoDaVisita = (r, g) =>
+  !!r.visita_scadenza && r.visita_scadenza >= perIlModulo(g.inizio).slice(0, 10);
+
 function disegnaDistinta(g, righe) {
   const elenco = document.getElementById('distintaElenco');
   elenco.innerHTML = '';
@@ -903,6 +951,7 @@ function disegnaDistinta(g, righe) {
     const bolli = voce.querySelector('.bolli');
     if (r.tessera_anspi) bolli.appendChild(chipTessera('anspi', 'ANSPI'));
     if (r.tessera_csi)   bolli.appendChild(chipTessera('csi', 'CSI'));
+    if (!copertoDaVisita(r, g)) bolli.appendChild(chipTessera('visita', 'visita'));
 
     elenco.appendChild(voce);
   }
@@ -964,6 +1013,18 @@ function costruisciFoglio(g, righe, conti) {
     ? conti.riassunto + '. La casella a sinistra serve per spuntare chi si presenta.'
     : 'Nessuna disponibilità registrata per questa giornata.';
   foglio.appendChild(riassunto);
+
+  // Non dovrebbe capitare, perché senza certificato non si dà la disponibilità.
+  // Ma la scadenza può essere stata corretta dopo: meglio accorgersene qui che
+  // davanti all'arbitro.
+  const scoperti = righe.filter(r => !copertoDaVisita(r, g));
+  if (scoperti.length) {
+    const avviso = document.createElement('p');
+    avviso.className = 'avvertenza';
+    avviso.textContent = 'ATTENZIONE: certificato medico non valido per questa data — ' +
+      scoperti.map(r => r.nome + ' ' + r.cognome).join(', ') + '.';
+    foglio.appendChild(avviso);
+  }
 
   // il vincolo che si scopre a bordo campo se non lo si è guardato prima
   if (conti.anspiSi < 2) {
