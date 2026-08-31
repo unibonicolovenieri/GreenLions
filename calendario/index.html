@@ -116,7 +116,7 @@
   .distinta .maglia.senza { background: var(--surface-2); color: var(--ink-3); }
   .distinta .chi { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 600; }
   .distinta .chi em { font-style: normal; font-weight: 400; font-size: 12.5px; color: var(--ink-3); }
-  .distinta .bolli { display: flex; gap: 4px; flex: none; }
+  .distinta .bolli { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: 55%; }
   .riassunto { margin: 12px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
 
   /* ============================================================
@@ -145,6 +145,7 @@
     }
     #stampa td.casella { width: 9mm; }
     #stampa td.num { width: 12mm; font-weight: 700; text-align: center; }
+    #stampa td:last-child { white-space: normal; font-size: 10pt; }
     #stampa tr.forse td { color: #444; }
     #stampa .riassunto { margin: 6mm 0 0; font-size: 10pt; color: #000; }
     #stampa .avvertenza { margin: 2mm 0 0; font-size: 10pt; font-weight: 700; }
@@ -916,12 +917,12 @@ moduloDistinta.addEventListener('submit', async ev => {
   }
 });
 
-/** Il nome della tessera, per esteso, come va scritto sulla distinta. */
+/** La tessera col suo numero, pronta da ricopiare sulla distinta ufficiale. */
 function tessereDi(r) {
   const t = [];
-  if (r.tessera_anspi) t.push('ANSPI');
-  if (r.tessera_csi)   t.push('CSI');
-  return t.length ? t.join(' + ') : '—';
+  if (r.tessera_anspi) t.push('ANSPI' + (r.tessera_anspi_numero ? ' ' + r.tessera_anspi_numero : ''));
+  if (r.tessera_csi)   t.push('CSI'   + (r.tessera_csi_numero   ? ' ' + r.tessera_csi_numero   : ''));
+  return t.length ? t.join('  ·  ') : '—';
 }
 
 /** Il certificato copre il giorno della partita? */
@@ -949,8 +950,10 @@ function disegnaDistinta(g, righe) {
     }
 
     const bolli = voce.querySelector('.bolli');
-    if (r.tessera_anspi) bolli.appendChild(chipTessera('anspi', 'ANSPI'));
-    if (r.tessera_csi)   bolli.appendChild(chipTessera('csi', 'CSI'));
+    if (r.tessera_anspi) bolli.appendChild(chipTessera('anspi',
+      'ANSPI' + (r.tessera_anspi_numero ? ' ' + r.tessera_anspi_numero : '')));
+    if (r.tessera_csi) bolli.appendChild(chipTessera('csi',
+      'CSI' + (r.tessera_csi_numero ? ' ' + r.tessera_csi_numero : '')));
     if (!copertoDaVisita(r, g)) bolli.appendChild(chipTessera('visita', 'visita'));
 
     elenco.appendChild(voce);

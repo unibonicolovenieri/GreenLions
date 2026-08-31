@@ -120,6 +120,7 @@ database, non la pagina: non si aggira smanettando col browser.
 |---|---|
 | `kit_presi` | policy sulla tabella `prenotazioni` |
 | `rosa_pubblica` | `aggiungi_giocatore`, `imposta_scheda` |
+| — (solo funzione) | `rosa_gestione` |
 | `calendario_pubblico` | `crea_giornata`, `modifica_giornata`, `annulla_giornata`, `elimina_giornata` |
 | `disponibilita_pubblica` | `segna_disponibilita` |
 | — (solo funzione) | `distinta`, `da_sollecitare` |
@@ -151,6 +152,25 @@ da una funzione che prima chiede il codice della squadra.
 
 La stampa non usa una pagina a parte: c'è un `@media print` che toglie di mezzo
 tutto il resto e lascia solo il foglio, riempito al momento in `#stampa`.
+
+### I numeri di tessera, e lo sblocco gestione
+
+Ogni tesserato ha anche il **numero** della tessera ANSPI e CSI, salvato come
+testo: le tessere hanno zeri davanti, lettere e trattini, e con un intero il
+primo zero sparirebbe. Serve per ricopiarli sulla distinta senza andarli a
+cercare, ed è lì che compaiono — accanto alla sigla, sia a schermo sia sul foglio
+stampato.
+
+**Non stanno in `rosa_pubblica`**: un numero di tessera è un identificativo, come
+il cognome, e quella vista la legge chiunque apra il sito. Escono da due funzioni
+protette: `distinta`, per scriverli sul foglio, e `rosa_gestione`, per
+correggerli.
+
+Da qui lo **sblocco gestione** sulla pagina Squadra: un pulsante che chiede il
+codice di gestione e ricarica la rosa completa — cognomi per esteso, numeri di
+tessera, schede già compilate. Il codice resta **solo in memoria**, per quella
+visita: si ricarica la pagina e si torna alla vista di tutti. Senza sblocco la
+pagina funziona esattamente come prima.
 
 ### La visita medica
 
@@ -239,6 +259,7 @@ Confident/
 ├── aggiornamento-5-solleciti.sql
 ├── aggiornamento-6-risultati-classifica.sql
 ├── aggiornamento-7-visita-medica.sql
+├── aggiornamento-8-numeri-tessera.sql
 ├── ISTRUZIONI.md                       come è stata messa online la pagina divise
 └── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
 ```

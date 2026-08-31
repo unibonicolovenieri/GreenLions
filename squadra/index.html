@@ -103,7 +103,10 @@
 
   <div class="barra">
     <div class="conto" id="conto"><b>—</b> in rosa</div>
-    <button type="button" class="btn primary piccolo" id="apriAggiungi">Aggiungiti alla rosa</button>
+    <span style="display:flex;gap:8px;flex-wrap:wrap">
+      <button type="button" class="btn ghost piccolo" id="apriGestione">Gestione</button>
+      <button type="button" class="btn primary piccolo" id="apriAggiungi">Aggiungiti alla rosa</button>
+    </span>
   </div>
 
   <div id="elenco" class="caricamento"></div>
@@ -179,9 +182,16 @@
       <input type="checkbox" name="anspi">
       <span>Tesserato ANSPI<small>Ne servono almeno due in campo per tutta la partita.</small></span>
     </label>
+    <label><span>Numero tessera ANSPI</span>
+      <input name="anspiNumero" maxlength="40" autocapitalize="characters" placeholder="come sta scritto sulla tessera">
+    </label>
+
     <label class="spunta">
       <input type="checkbox" name="csi">
       <span>Tesserato CSI</span>
+    </label>
+    <label><span>Numero tessera CSI</span>
+      <input name="csiNumero" maxlength="40" autocapitalize="characters" placeholder="come sta scritto sulla tessera">
     </label>
 
     <label><span>Scadenza della visita medica</span>
@@ -196,6 +206,26 @@
     <div class="azioni">
       <button type="button" class="btn ghost" id="chiudiTessere">Annulla</button>
       <button type="submit" class="btn primary" id="confermaTessere">Salva</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="finestraGestione">
+  <div class="testata"></div>
+  <form class="foglio" id="moduloGestione" novalidate>
+    <h2>Gestione</h2>
+    <p class="lede" style="text-align:left;margin:0 0 16px">Con il codice di gestione la rosa mostra
+       i cognomi per esteso e i numeri di tessera, e le schede si aprono già compilate.</p>
+
+    <div class="msg err" id="erroreGestione"></div>
+
+    <label><span>Codice di gestione</span>
+      <input name="codice" required maxlength="40" autocapitalize="characters" placeholder="il tuo, non quello del gruppo">
+    </label>
+
+    <div class="azioni">
+      <button type="button" class="btn ghost" id="chiudiGestione">Annulla</button>
+      <button type="submit" class="btn primary" id="confermaGestione">Sblocca</button>
     </div>
   </form>
 </dialog>
@@ -220,13 +250,32 @@ const errore   = document.getElementById('errore');
 const esito    = document.getElementById('esito');
 const conferma = document.getElementById('conferma');
 
-let rosa = [];
+let rosa = [];          // quello che vede chiunque: nome e iniziale
+let rosaPiena = [];     // con il codice di gestione: cognomi e numeri di tessera
+let codiceGestione = null;
 
 const NOTA_NORMALE = document.getElementById('nota').textContent;
+
+/* Quando la gestione è sbloccata si disegna dalla rosa completa, dove al posto
+   dell'iniziale c'è il cognome intero. Il resto del codice non cambia: continua
+   a stampare "iniziale" senza sapere cosa ci sia dentro. */
+const inElenco = () => codiceGestione
+  ? rosaPiena.map(g => ({ ...g, iniziale: g.cognome }))
+  : rosa;
 
 async function carica() {
   GL_ULTIMO_ERRORE = null;
   rosa = await glLeggi('rosa_pubblica', 'select=*&order=numero.asc.nullslast,nome.asc');
+  if (codiceGestione) {
+    try {
+      rosaPiena = await glChiama('rosa_gestione', { _codice: codiceGestione }) || [];
+    } catch {
+      // il codice non vale più: si torna a vedere quello che vedono tutti
+      codiceGestione = null;
+      rosaPiena = [];
+      aggiornaPulsanteGestione();
+    }
+  }
   disegna();
   avvisaSeRotto();
 }
@@ -246,22 +295,23 @@ function disegna() {
   elenco.classList.remove('caricamento');
   elenco.innerHTML = '';
 
-  const anspi = rosa.filter(g => g.tessera_anspi).length;
-  const csi   = rosa.filter(g => g.tessera_csi).length;
-  const senzaVisita = rosa.filter(g => statoVisita(g.visita_scadenza)).length;
+  const lista = inElenco();
+  const anspi = lista.filter(g => g.tessera_anspi).length;
+  const csi   = lista.filter(g => g.tessera_csi).length;
+  const senzaVisita = lista.filter(g => statoVisita(g.visita_scadenza)).length;
   document.getElementById('conto').innerHTML =
-    '<b>' + rosa.length + '</b> ' + (rosa.length === 1 ? 'persona in rosa' : 'in rosa') +
-    (rosa.length ? ' <span style="color:var(--ink-3)">·</span> ' + anspi + ' ANSPI · ' + csi + ' CSI' : '') +
+    '<b>' + lista.length + '</b> ' + (lista.length === 1 ? 'persona in rosa' : 'in rosa') +
+    (lista.length ? ' <span style="color:var(--ink-3)">·</span> ' + anspi + ' ANSPI · ' + csi + ' CSI' : '') +
     (senzaVisita ? ' <span style="color:var(--ink-3)">·</span> <b style="color:var(--kit-rosso)">' +
       senzaVisita + '</b> da sistemare' : '');
 
-  if (rosa.length === 0) {
+  if (lista.length === 0) {
     elenco.innerHTML = '<p class="vuoto">La rosa è ancora vuota. Il primo che si aggiunge apre le danze.</p>';
     return;
   }
 
   for (const [ruolo, titolo] of REPARTI) {
-    const dentro = rosa.filter(g => g.ruolo === ruolo);
+    const dentro = lista.filter(g => g.ruolo === ruolo);
     if (dentro.length === 0) continue;
 
     const sezione = document.createElement('section');
@@ -342,11 +392,82 @@ function apriTessere(g) {
     g.nome + ' ' + g.iniziale + (g.numero != null ? ' · numero ' + g.numero : '');
   moduloTessere.elements.anspi.checked = !!g.tessera_anspi;
   moduloTessere.elements.csi.checked   = !!g.tessera_csi;
-  moduloTessere.elements.visita.value  = g.visita_scadenza || '';
+  moduloTessere.elements.visita.value      = g.visita_scadenza || '';
+  moduloTessere.elements.anspiNumero.value = g.tessera_anspi_numero || '';
+  moduloTessere.elements.csiNumero.value   = g.tessera_csi_numero || '';
+  if (codiceGestione) moduloTessere.elements.codice.value = codiceGestione;
+
+  // senza gestione sbloccata i numeri salvati non li conosciamo: meglio dirlo
+  for (const campo of ['anspiNumero', 'csiNumero']) {
+    moduloTessere.elements[campo].placeholder = codiceGestione
+      ? 'come sta scritto sulla tessera'
+      : 'sbloccando la gestione compare quello salvato';
+  }
   finestraTessere.showModal();
 }
 
+// scrivere un numero di tessera implica esserne tesserati: la spunta segue
+for (const [campo, spunta] of [['anspiNumero', 'anspi'], ['csiNumero', 'csi']]) {
+  moduloTessere.elements[campo].addEventListener('input', (ev) => {
+    if (ev.target.value.trim()) moduloTessere.elements[spunta].checked = true;
+  });
+}
+
 document.getElementById('chiudiTessere').onclick = () => finestraTessere.close();
+
+/* ---------------- sblocco della gestione ---------------- */
+
+const finestraGestione = document.getElementById('finestraGestione');
+const moduloGestione   = document.getElementById('moduloGestione');
+const erroreGestione   = document.getElementById('erroreGestione');
+
+function aggiornaPulsanteGestione() {
+  const b = document.getElementById('apriGestione');
+  b.textContent = codiceGestione ? 'Esci dalla gestione' : 'Gestione';
+  b.className = codiceGestione ? 'btn pericolo piccolo' : 'btn ghost piccolo';
+}
+
+document.getElementById('apriGestione').onclick = async () => {
+  if (codiceGestione) {
+    // il codice sta solo in memoria: uscire vuol dire dimenticarlo
+    codiceGestione = null;
+    rosaPiena = [];
+    aggiornaPulsanteGestione();
+    await carica();
+    return;
+  }
+  erroreGestione.classList.remove('mostra');
+  moduloGestione.reset();
+  finestraGestione.showModal();
+  moduloGestione.querySelector('[name=codice]').focus();
+};
+
+document.getElementById('chiudiGestione').onclick = () => finestraGestione.close();
+
+moduloGestione.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  erroreGestione.classList.remove('mostra');
+
+  const codice = moduloGestione.elements.codice.value.trim();
+  if (!codice) {
+    erroreGestione.textContent = 'Manca il codice di gestione.';
+    erroreGestione.classList.add('mostra');
+    return;
+  }
+
+  try {
+    rosaPiena = await glChiama('rosa_gestione', { _codice: codice }) || [];
+    codiceGestione = codice;
+    finestraGestione.close();
+    aggiornaPulsanteGestione();
+    disegna();
+    esito.textContent = 'Gestione sbloccata: cognomi per esteso e numeri di tessera. Vale solo per questa visita.';
+    esito.classList.add('mostra');
+  } catch (e) {
+    erroreGestione.textContent = glMessaggio(e);
+    erroreGestione.classList.add('mostra');
+  }
+});
 
 moduloTessere.addEventListener('submit', async ev => {
   ev.preventDefault();
@@ -368,7 +489,9 @@ moduloTessere.addEventListener('submit', async ev => {
       _giocatore_id: giocatoreScelto.id,
       _anspi: moduloTessere.elements.anspi.checked,
       _csi:   moduloTessere.elements.csi.checked,
-      _visita_scadenza: moduloTessere.elements.visita.value || null
+      _visita_scadenza: moduloTessere.elements.visita.value || null,
+      _anspi_numero: moduloTessere.elements.anspiNumero.value.trim() || null,
+      _csi_numero:   moduloTessere.elements.csiNumero.value.trim() || null
     });
 
     finestraTessere.close();
