@@ -70,6 +70,12 @@ const DATI = {
   ],
   da_sollecitare: [{ id: 3, nome: 'Anna', cognome: 'Rossi', telefono: '3331234567' }],
   rosa_gestione: [],
+  segna_consegna: '2026-08-31T18:00:00+00:00',
+  consegne: [
+    { numero: 1, nome: 'Thomas', cognome: 'Ferrari', consegnata_il: '2026-08-30T10:00:00+00:00' },
+    { numero: 8, nome: 'Nicolò', cognome: 'Venieri', consegnata_il: null },
+    { numero: 10, nome: 'Francesco', cognome: 'Alberti', consegnata_il: null },
+  ],
 };
 
 const PAGINE = [
@@ -79,12 +85,19 @@ const PAGINE = [
   { file: 'regolamento/index.html',attesi: '.voce',                          minimo: 3 },
   { file: 'index.html',            attesi: '.card',                          minimo: 4 },
   { file: 'divise/index.html',     attesi: '#grid .kit',                     minimo: 17 },
+  // la pagina consegne parte chiusa: le do il codice gia' in tasca, come
+  // succede quando il telefono ricarica la pagina al campo
+  { file: 'consegne/index.html',   attesi: '#elenco .riga',                  minimo: 3,
+    prima: (w) => w.sessionStorage.setItem('gl-consegne-codice', 'PAROLA') },
 ];
 
 function finteRisposte(url) {
   const u = String(url);
   const m = u.match(/\/rest\/v1\/(?:rpc\/)?([a-z_]+)/);
   const nome = m ? m[1] : '';
+  // attenzione: non tutte le funzioni tornano una lista. segna_consegna
+  // torna un momento, e dargli [] faceva scoppiare la pagina — che e'
+  // esattamente il genere di cosa per cui questo file esiste.
   const corpo = DATI[nome] !== undefined ? DATI[nome] : [];
   return Promise.resolve({
     ok: true, status: 200,
@@ -120,6 +133,7 @@ async function provaPagina(p) {
     url: 'https://esempio.netlify.app' + (p.file === 'index.html' ? '/' : '/' + path.dirname(p.file) + '/'),
     virtualConsole: vc,
     beforeParse(w) {
+      if (p.prima) p.prima(w);
       w.fetch = finteRisposte;
       w.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
       w.HTMLDialogElement.prototype.close = function () { this.open = false; };
@@ -135,7 +149,7 @@ async function provaPagina(p) {
   // Aprire ogni finestra: il caricamento da solo non tocca il codice dei
   // moduli, ed e li che si nascondono meta degli errori.
   const bottoni = dom.window.document.querySelectorAll(
-    'button[id^=apri], .giocatore, .giornata .azioni-riga button, .partite button');
+    'button[id^=apri], .giocatore, .giornata .azioni-riga button, .partite button, .consegne .riga');
   for (const b of bottoni) {
     try { b.click(); } catch (e) { errori.push('clic su ' + (b.id || b.className) + ': ' + e.message); }
     await new Promise((r) => setTimeout(r, 20));

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Pagina di sola gestione: non deve finire da nessuna parte. -->
+<meta name="robots" content="noindex, nofollow">
+<title>Consegne divise · Green Lions</title>
+<meta name="theme-color" content="#1c7a3e">
+
+<link rel="icon" type="image/svg+xml" href="/assets/img/leone.svg">
+<link rel="icon" type="image/png" href="/assets/img/favicon.png">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/css/site.css">
+<style>
+  /* ============================================================
+     Pagina da usare in piedi, al campo, con una mano sola.
+     Bersagli grandi, nessuna conferma, nessun passaggio in più.
+     ============================================================ */
+
+  .consegne { list-style: none; margin: 0; padding: 0; }
+  .consegne li { margin: 0 0 8px; }
+
+  .riga {
+    display: flex; align-items: center; gap: 14px; width: 100%;
+    min-height: 64px; padding: 10px 14px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 5px solid var(--line);
+    border-radius: 13px;
+    font: inherit; color: inherit; text-align: left; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background .18s, border-color .18s;
+  }
+  .riga:focus-visible { outline: 3px solid var(--kit-verde); outline-offset: 2px; }
+  .riga:active { transform: scale(.995); }
+
+  .maglia {
+    flex: none; width: 44px; height: 44px; display: grid; place-items: center;
+    border-radius: 11px; background: var(--surface-2); color: var(--ink-2);
+    font-weight: 800; font-size: 19px; font-variant-numeric: tabular-nums;
+  }
+  .chi { flex: 1; min-width: 0; font-size: 16.5px; font-weight: 600; line-height: 1.25; }
+  .chi small { display: block; font-weight: 400; font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+
+  .spunta {
+    flex: none; width: 34px; height: 34px; border-radius: 50%;
+    border: 2px solid var(--line); display: grid; place-items: center;
+    color: transparent; font-size: 19px; font-weight: 800; line-height: 1;
+  }
+
+  /* consegnata */
+  .riga.fatta { background: var(--accent-sf); border-left-color: var(--kit-verde); }
+  .riga.fatta .maglia { background: var(--kit-verde); color: #fff; }
+  .riga.fatta .chi { color: var(--kit-verde-s); }
+  .riga.fatta .spunta { background: var(--kit-verde); border-color: var(--kit-verde); color: #fff; }
+  @media (prefers-color-scheme: dark) {
+    .riga.fatta .maglia { background: var(--accent); color: var(--accent-ink); }
+    .riga.fatta .chi { color: var(--accent); }
+    .riga.fatta .spunta { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  }
+
+  /* mentre il database non ha ancora confermato */
+  .riga.inviando { opacity: .55; }
+
+  .filtro {
+    display: flex; align-items: center; gap: 8px; margin: 0;
+    font-size: 14px; font-weight: 600; color: var(--ink-2); cursor: pointer;
+  }
+  .filtro input { width: auto; margin: 0; accent-color: var(--kit-verde); width: 20px; height: 20px; }
+
+  #ingresso { max-width: 380px; margin: 30px auto 0; }
+  #ingresso .btn { width: 100%; padding: 15px; font-size: 16px; }
+  .fondo { margin: 26px 0 0; text-align: center; }
+  #esito { margin: 0 0 14px; }
+</style>
+</head>
+<body>
+
+<div class="banda"></div>
+
+<svg style="position:absolute;width:0;height:0" aria-hidden="true">
+  <symbol id="leone" viewBox="0 0 100 100"><path d="M50.0 2.0 L58.1 17.0 L72.3 7.5 L72.5 24.6 L89.5 22.7 L81.8 37.9 L97.7 44.2 L83.8 54.1 L94.9 67.0 L78.0 69.3 L81.8 85.9 L65.8 80.1 L61.5 96.6 L50.0 84.0 L38.5 96.6 L34.2 80.1 L18.2 85.9 L22.0 69.3 L5.1 67.0 L16.2 54.1 L2.3 44.2 L18.2 37.9 L10.5 22.7 L27.5 24.6 L27.7 7.5 L41.9 17.0 Z" style="fill:var(--leo-criniera,#1c7a3e)"/>
+  <circle cx="50" cy="50" r="34" style="fill:var(--leo-criniera,#1c7a3e)"/>
+  <circle cx="29" cy="32" r="8.5" style="fill:var(--leo-faccia,#efc41a)"/>
+  <circle cx="71" cy="32" r="8.5" style="fill:var(--leo-faccia,#efc41a)"/>
+  <circle cx="29" cy="32" r="3.8" style="fill:var(--leo-tratti,#12522a)"/>
+  <circle cx="71" cy="32" r="3.8" style="fill:var(--leo-tratti,#12522a)"/>
+  <circle cx="50" cy="52" r="27" style="fill:var(--leo-faccia,#efc41a)"/>
+  <ellipse cx="39" cy="45" rx="4.4" ry="5.4" style="fill:var(--leo-tratti,#12522a)"/>
+  <ellipse cx="61" cy="45" rx="4.4" ry="5.4" style="fill:var(--leo-tratti,#12522a)"/>
+  <path d="M50 66 L41.5 57.5 L58.5 57.5 Z" style="fill:var(--leo-tratti,#12522a)"/>
+  <path d="M50 66 L50 72" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M50 72 q -7 6 -13 0" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M50 72 q  7 6  13 0" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/></symbol>
+</svg>
+
+<div class="wrap">
+
+  <p><a class="back" href="/">← Green Lions</a></p>
+
+  <header class="site-head">
+    <span class="crest"><svg class="leo" viewBox="0 0 100 100" aria-hidden="true"><use href="#leone"></use></svg>Green Lions</span>
+    <h1>Consegne divise</h1>
+    <p class="lede">Chi si è già portato via la sua. Tocca il nome per spuntare, tocca di nuovo per togliere.</p>
+  </header>
+
+  <!-- ---------- sblocco, una volta sola ---------- -->
+  <div id="ingresso">
+    <form id="moduloIngresso" novalidate>
+      <div class="msg err" id="erroreIngresso"></div>
+      <label><span>Codice di gestione</span>
+        <input name="codice" type="password" required maxlength="40" autocomplete="off"
+               autocapitalize="characters" placeholder="la parola che sai solo tu">
+      </label>
+      <p class="appunto" style="margin:-6px 0 16px;font-size:12.5px;color:var(--ink-2)">
+        Te lo chiedo una volta sola: resta buono finché non chiudi questa scheda del browser.</p>
+      <button type="submit" class="btn primary" id="entra">Entra</button>
+    </form>
+  </div>
+
+  <!-- ---------- il lavoro vero ---------- -->
+  <div id="lavoro" hidden>
+    <div class="msg err" id="esito"></div>
+
+    <div class="barra">
+      <div class="conto" id="conto"><b>—</b></div>
+      <label class="filtro">
+        <input type="checkbox" id="soloDaFare">
+        <span>solo da consegnare</span>
+      </label>
+    </div>
+
+    <ul class="consegne" id="elenco"></ul>
+    <p class="vuoto" id="niente" hidden></p>
+
+    <div class="fondo">
+      <button type="button" class="btn ghost piccolo" id="esci">Esci dalla gestione</button>
+    </div>
+  </div>
+
+  <footer class="site-footer">Green Lions · <a href="/">torna alla home</a></footer>
+
+</div>
+
+<script src="/assets/js/supabase.js"></script>
+<script>
+/* ============================================================
+   Il codice sta in sessionStorage e non in una variabile
+   qualsiasi: al campo basta che il telefono ricarichi la pagina
+   — cambio applicazione, schermo che si spegne — per perderla,
+   e ridigitare la parola davanti a tutti ogni volta non va bene.
+   Con sessionStorage sopravvive al ricaricamento e sparisce
+   quando chiudi la scheda. Non e' un login: e' un promemoria
+   che dura quanto dura la sessione.
+   ============================================================ */
+const CHIAVE = 'gl-consegne-codice';
+
+function codiceSalvato() {
+  try { return sessionStorage.getItem(CHIAVE); } catch { return null; }
+}
+function salvaCodice(c) {
+  try { sessionStorage.setItem(CHIAVE, c); } catch { /* pazienza, resta in memoria */ }
+}
+function dimenticaCodice() {
+  try { sessionStorage.removeItem(CHIAVE); } catch {}
+}
+
+let codice = codiceSalvato();
+let consegne = [];
+let inCorso = new Set();
+
+const ingresso = document.getElementById('ingresso');
+const lavoro   = document.getElementById('lavoro');
+const elenco   = document.getElementById('elenco');
+const esito    = document.getElementById('esito');
+const erroreIngresso = document.getElementById('erroreIngresso');
+
+/* Torna stringa vuota se non e' una data buona, invece di sollevare
+   RangeError: un valore inatteso deve costare una riga senza orario, non
+   una pagina che smette di disegnarsi in mezzo al campo. */
+function quando(iso) {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('it-IT', {
+    timeZone: 'Europe/Rome', day: 'numeric', month: 'short',
+    hour: '2-digit', minute: '2-digit'
+  }).format(d);
+}
+
+async function carica() {
+  consegne = await glChiama('consegne', { _codice: codice }) || [];
+  disegna();
+}
+
+function disegna() {
+  const soloDaFare = document.getElementById('soloDaFare').checked;
+  const fatte = consegne.filter(c => c.consegnata_il).length;
+
+  document.getElementById('conto').innerHTML =
+    '<b>' + fatte + '</b> su ' + consegne.length + ' consegnate';
+
+  const visibili = soloDaFare ? consegne.filter(c => !c.consegnata_il) : consegne;
+
+  elenco.innerHTML = '';
+  for (const c of visibili) {
+    const voce = document.createElement('li');
+    const riga = document.createElement('button');
+    riga.type = 'button';
+    riga.className = 'riga' + (c.consegnata_il ? ' fatta' : '') +
+                     (inCorso.has(c.numero) ? ' inviando' : '');
+    riga.innerHTML = '<span class="maglia"></span><span class="chi"><span class="nome"></span></span>' +
+                     '<span class="spunta">✓</span>';
+    riga.querySelector('.maglia').textContent = c.numero;
+    riga.querySelector('.nome').textContent = c.nome + ' ' + c.cognome;
+
+    const orario = c.consegnata_il ? quando(c.consegnata_il) : '';
+    if (orario) {
+      const data = document.createElement('small');
+      data.textContent = 'consegnata ' + orario;
+      riga.querySelector('.chi').appendChild(data);
+    }
+
+    riga.setAttribute('aria-pressed', c.consegnata_il ? 'true' : 'false');
+    riga.setAttribute('aria-label', 'Divisa ' + c.numero + ', ' + c.nome + ' ' + c.cognome +
+      (c.consegnata_il ? ': consegnata' : ': da consegnare'));
+    riga.onclick = () => commuta(c.numero);
+
+    voce.appendChild(riga);
+    elenco.appendChild(voce);
+  }
+
+  const niente = document.getElementById('niente');
+  niente.hidden = visibili.length > 0;
+  if (!visibili.length) {
+    niente.textContent = consegne.length === 0
+      ? 'Non risulta nessuna prenotazione.'
+      : 'Consegnate tutte. Non manca nessuno.';
+  }
+}
+
+/* Il segno appare subito e la scrittura viaggia dietro: al campo non si
+   aspetta il database con la gente davanti. Se va storto si torna indietro
+   da soli e si dice cos'e' successo. */
+async function commuta(numero) {
+  const riga = consegne.find(c => c.numero === numero);
+  if (!riga || inCorso.has(numero)) return;
+
+  const prima = riga.consegnata_il;
+  const nuovo = !prima;
+
+  riga.consegnata_il = nuovo ? new Date().toISOString() : null;
+  inCorso.add(numero);
+  esito.classList.remove('mostra');
+  disegna();
+
+  if (navigator.vibrate) navigator.vibrate(12);
+
+  try {
+    const registrato = await glChiama('segna_consegna', {
+      _codice: codice, _numero: numero, _consegnata: nuovo
+    });
+    riga.consegnata_il = registrato;   // il momento vero, quello del database
+  } catch (e) {
+    riga.consegnata_il = prima;        // com'era
+    esito.textContent = 'Non sono riuscito a salvare la ' + numero + ': ' + glMessaggio(e);
+    esito.classList.add('mostra');
+  } finally {
+    inCorso.delete(numero);
+    disegna();
+  }
+}
+
+/* ---------------- ingresso e uscita ---------------- */
+
+async function entra(parola) {
+  consegne = await glChiama('consegne', { _codice: parola }) || [];
+  codice = parola;
+  salvaCodice(parola);
+  ingresso.hidden = true;
+  lavoro.hidden = false;
+  disegna();
+}
+
+document.getElementById('moduloIngresso').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  erroreIngresso.classList.remove('mostra');
+
+  const parola = ev.target.elements.codice.value.trim();
+  if (!parola) {
+    erroreIngresso.textContent = 'Manca il codice.';
+    erroreIngresso.classList.add('mostra');
+    return;
+  }
+
+  const bottone = document.getElementById('entra');
+  bottone.disabled = true;
+  bottone.textContent = 'Un attimo…';
+  try {
+    await entra(parola);
+  } catch (e) {
+    erroreIngresso.textContent = glMessaggio(e);
+    erroreIngresso.classList.add('mostra');
+  } finally {
+    bottone.disabled = false;
+    bottone.textContent = 'Entra';
+  }
+});
+
+document.getElementById('esci').onclick = () => {
+  dimenticaCodice();
+  codice = null;
+  consegne = [];
+  lavoro.hidden = true;
+  ingresso.hidden = false;
+  document.getElementById('moduloIngresso').reset();
+};
+
+document.getElementById('soloDaFare').onchange = disegna;
+
+/* Se il codice c'e' gia' da prima, si entra senza chiedere niente. */
+if (codice) {
+  ingresso.hidden = true;
+  lavoro.hidden = false;
+  carica().catch(() => {
+    // non vale piu': si torna a chiedere
+    dimenticaCodice();
+    codice = null;
+    lavoro.hidden = true;
+    ingresso.hidden = false;
+  });
+}
+</script>
+</body>
+</html>

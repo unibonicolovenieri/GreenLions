@@ -14,6 +14,7 @@ programmi installati: si aprono i file con un editor di testo e si salvano.
 | `/calendario/` | le giornate. Si dà la disponibilità e arriva l'invito da mettere in calendario; con il codice si creano e si modificano le giornate |
 | `/classifica/` | i tre gironi con punti e differenza reti, e i risultati |
 | `/regolamento/` | le regole del campionato e come si arriva alla finale |
+| `/consegne/` | **solo gestione** — spuntare al campo chi ha ritirato la divisa |
 
 Tutte scrivono su Supabase e chiedono un codice per farlo. I codici sono **due**:
 
@@ -37,6 +38,7 @@ gestisce ne ricorda uno solo. Senza codice, dal sito non si scrive niente.
 ├── calendario/index.html
 ├── regolamento/index.html
 ├── classifica/index.html
+├── consegne/index.html
 ├── assets/
 │   ├── css/site.css      colori e stili comuni
 │   ├── js/supabase.js    lettura del database e chiamata alle sue funzioni
@@ -140,6 +142,7 @@ database, non la pagina: non si aggira smanettando col browser.
 | `disponibilita_pubblica` | `segna_disponibilita` |
 | — (solo funzione) | `distinta`, `da_sollecitare` |
 | `classifica`, `partite_pubbliche` | `segna_risultato`, `elimina_risultato` |
+| — (solo funzione) | `consegne`, `segna_consegna` |
 
 ### I tesserati ANSPI
 
@@ -219,6 +222,26 @@ gestione**: chi è sbarrato non deve poter alzare da sé la sbarra. Nella stessa
 scheda ci sono anche le tessere; se preferisci che i giocatori se le dichiarino
 da soli col codice di squadra, è una riga in `imposta_scheda`.
 
+### Le consegne delle divise
+
+`/consegne/` è una pagina da usare in piedi, al campo, con una mano sola: elenco
+grande, si tocca il nome e la divisa risulta consegnata. Tocchi di nuovo e torna
+indietro. C'è il filtro «solo da consegnare» per far sparire chi è già passato.
+
+Due scelte che la rendono usabile lì:
+
+- **Il codice si dà una volta** e resta in `sessionStorage`, non in una variabile
+  qualsiasi: al campo basta che il telefono ricarichi la pagina — cambio app,
+  schermo spento — per perderla, e ridigitare la parola davanti a tutti ogni volta
+  non va bene. Sparisce quando chiudi la scheda del browser. Non è un login.
+- **Il segno appare subito** e la scrittura viaggia dietro. Se la rete non c'è, la
+  spunta torna com'era e compare l'avviso: non resta un segno verde che in realtà
+  non è stato salvato.
+
+Sul database è una data, `prenotazioni.consegnata_il`, non una casella sì/no: così
+resta scritto anche *quando*, che è quello che serve se qualcuno dice di non aver
+mai ricevuto niente.
+
 ### I solleciti
 
 Sulle giornate future c'è **Sollecita**: chiede il codice di gestione e mostra
@@ -287,6 +310,7 @@ Confident/
 ├── aggiornamento-7-visita-medica.sql
 ├── aggiornamento-8-numeri-tessera.sql
 ├── aggiornamento-9-staff-fuori-rosa.sql
+├── aggiornamento-10-consegne.sql
 ├── ISTRUZIONI.md                       come è stata messa online la pagina divise
 └── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
 ```

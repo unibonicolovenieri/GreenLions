@@ -126,6 +126,7 @@ const GL_MESSAGGI = {
   SQUADRA_INESISTENTE: 'Squadra non trovata. Ricarica la pagina.',
   GIRONI_DIVERSI:      'Le due squadre sono in gironi diversi: nella fase a gironi non si incontrano.',
   PARTITA_INESISTENTE: 'Questo risultato non c\'è più. Ricarica la pagina.',
+  PRENOTAZIONE_INESISTENTE: 'Questa divisa non risulta prenotata. Ricarica la pagina.',
   RETE_ASSENTE:        'Connessione assente. Controlla la rete e riprova.'
 };
 
