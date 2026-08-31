@@ -22,7 +22,7 @@
   }
 
   .giornata {
-    display: grid; grid-template-columns: 58px 1fr; gap: 15px;
+    display: grid; grid-template-columns: 58px 1fr auto; gap: 15px;
     padding: 15px 17px; margin: 0 0 11px;
     background: var(--surface); border: 1px solid var(--line);
     border-left: 5px solid var(--kit-verde); border-radius: var(--radius);
@@ -36,6 +36,29 @@
   .quando .giorno { font-size: 27px; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
   .quando .mese { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--kit-verde); }
   @media (prefers-color-scheme: dark) { .quando .mese { color: var(--accent); } }
+
+  /* ---- il votometro: quanti hanno risposto, a colpo d'occhio ---- */
+  .votometro { display: flex; flex-direction: column; align-items: center; gap: 5px; padding-top: 3px; }
+  .votometro svg { width: 26px; height: 52px; display: block; overflow: visible; }
+  .votometro .vetro { fill: var(--surface-2); stroke: var(--line); stroke-width: 1.6; }
+  .votometro .onda {
+    fill: var(--kit-giallo);
+    animation: sciabordio 2.8s linear infinite;
+  }
+  .votometro.pieno .onda { fill: var(--kit-verde); }
+  .votometro .quanti {
+    font: 800 10px/1 ui-sans-serif, system-ui, sans-serif;
+    color: var(--ink-3); font-variant-numeric: tabular-nums;
+  }
+  .votometro.pieno .quanti { color: var(--kit-verde); }
+  @media (prefers-color-scheme: dark) {
+    .votometro.pieno .onda   { fill: var(--accent); }
+    .votometro.pieno .quanti { color: var(--accent); }
+  }
+  /* l'onda è larga tre volte la provetta: scorrendo di una lunghezza d'onda
+     torna identica a sé stessa, e il movimento non ha giunture */
+  @keyframes sciabordio { from { transform: translateX(0); } to { transform: translateX(26px); } }
+  @media (prefers-reduced-motion: reduce) { .votometro .onda { animation: none; } }
 
   .titolo { font-size: 17px; font-weight: 700; letter-spacing: -.012em; margin: 0 0 3px; }
   .dettaglio { font-size: 13.5px; color: var(--ink-2); margin: 0 0 2px; }
@@ -466,6 +489,55 @@ function disegna() {
   if (passate.length)  elenco.appendChild(sezione('Già giocate', passate, true));
 }
 
+/**
+ * La provetta che si riempie: quanti giocatori hanno risposto, su quanti sono.
+ *
+ * Conta solo i giocatori — allenatore e staff non fanno numero, come
+ * dappertutto — e considera risposta anche il "no": quello che manca è
+ * chi non si è fatto vivo affatto.
+ */
+function riempiVotometro(contenitore, giornataId) {
+  const giocatori = rosa.filter(r => r.e_giocatore !== false);
+  if (giocatori.length === 0) return;
+
+  const hanno = new Set(
+    disponibilita.filter(d => d.giornata_id === giornataId && d.e_giocatore !== false)
+                 .map(d => d.giocatore_id));
+  const quanti = giocatori.filter(g => hanno.has(g.id)).length;
+  const frazione = quanti / giocatori.length;
+  const tutti = quanti === giocatori.length;
+
+  // la provetta è alta 50 unità fra y=1 e y=51
+  const pelo = 51 - 50 * frazione;
+  const ritaglio = 'provetta-' + giornataId;
+
+  // un'onda lunga tre provette, così scorrendo non si vedono i bordi
+  const onda = ['M -26 ' + pelo, 'q 6.5 -3 13 0', 't 13 0', 't 13 0', 't 13 0', 't 13 0', 't 13 0',
+                'L 52 52', 'L -26 52', 'Z'].join(' ');
+
+  contenitore.hidden = false;
+  contenitore.classList.toggle('pieno', tutti);
+  contenitore.innerHTML =
+    '<svg viewBox="0 0 26 52" role="img">' +
+      '<defs><clipPath id="' + ritaglio + '">' +
+        '<rect x="1" y="1" width="24" height="50" rx="12"/></clipPath></defs>' +
+      '<rect class="vetro" x="1" y="1" width="24" height="50" rx="12"/>' +
+      '<g clip-path="url(#' + ritaglio + ')">' +
+        (frazione > 0 ? '<path class="onda" d="' + onda + '"/>' : '') +
+      '</g>' +
+      '<rect class="vetro" x="1" y="1" width="24" height="50" rx="12" style="fill:none"/>' +
+    '</svg>' +
+    '<span class="quanti"></span>';
+
+  contenitore.querySelector('.quanti').textContent = quanti + '/' + giocatori.length;
+  contenitore.querySelector('svg').setAttribute('aria-label', tutti
+    ? 'Hanno risposto tutti i giocatori'
+    : quanti + ' giocatori su ' + giocatori.length + ' hanno risposto');
+  contenitore.title = tutti
+    ? 'Hanno risposto tutti'
+    : (giocatori.length - quanti) + ' giocatori non hanno ancora risposto';
+}
+
 function chipTessera(classe, testo) {
   const c = document.createElement('span');
   c.className = 'chip ' + classe;
@@ -512,7 +584,8 @@ function scheda(g, passata) {
       <p class="nomi" hidden></p>
       <p class="nomi assenti" hidden></p>
       <div class="azioni-riga"></div>
-    </div>`;
+    </div>
+    <div class="votometro" hidden></div>`;
 
   carta.querySelector('.settimana').textContent = fmt(g.inizio, { weekday: 'short' });
   carta.querySelector('.giorno').textContent    = fmt(g.inizio, { day: 'numeric' });
@@ -561,6 +634,10 @@ function scheda(g, passata) {
   if (anspiSi) conteggi.appendChild(chipTessera('anspi', anspiSi + ' ANSPI'));
   if (csiSi)   conteggi.appendChild(chipTessera('csi',   csiSi + ' CSI'));
   if (staffPresente.length) conteggi.appendChild(chipTessera('', staffPresente.length + ' staff'));
+
+  // Anche il votometro serve solo prima: a partita giocata non c'è più
+  // niente da sollecitare.
+  if (!annullata && !passata) riempiVotometro(carta.querySelector('.votometro'), g.id);
 
   // L'avviso ha senso solo su quello che deve ancora succedere.
   if (!annullata && !passata) {

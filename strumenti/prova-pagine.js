@@ -30,6 +30,7 @@ const DATI = {
     { id: 2, nome: 'Nicolò',  iniziale: 'V.', numero: 8,  ruolo: 'giocatore',      tessera_anspi: false, tessera_csi: true,  visita_scadenza: '2027-06-30', e_giocatore: true },
     { id: 3, nome: 'Anna',    iniziale: 'R.', numero: null, ruolo: 'portiere',     tessera_anspi: true,  tessera_csi: false, visita_scadenza: '2026-09-05', e_giocatore: true },
     { id: 4, nome: 'Marco',   iniziale: 'B.', numero: 10, ruolo: 'allenatore',     tessera_anspi: true,  tessera_csi: true,  visita_scadenza: null, e_giocatore: false },
+    { id: 5, nome: 'Zitto',   iniziale: 'Z.', numero: 12, ruolo: 'giocatore',      tessera_anspi: false, tessera_csi: false, visita_scadenza: '2099-01-01', e_giocatore: true },
   ],
   calendario_pubblico: [
     { id: 1, titolo: 'Campionato 1a', tipo: 'partita', avversario: 'Smama', inizio: '2099-09-14T13:30:00+00:00',
