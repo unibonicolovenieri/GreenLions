@@ -295,23 +295,23 @@ function disegna() {
   elenco.classList.remove('caricamento');
   elenco.innerHTML = '';
 
-  const lista = inElenco();
-  const anspi = lista.filter(g => g.tessera_anspi).length;
-  const csi   = lista.filter(g => g.tessera_csi).length;
-  const senzaVisita = lista.filter(g => statoVisita(g.visita_scadenza)).length;
+  const rosaMostrata = inElenco();
+  const anspi = rosaMostrata.filter(g => g.tessera_anspi).length;
+  const csi   = rosaMostrata.filter(g => g.tessera_csi).length;
+  const senzaVisita = rosaMostrata.filter(g => statoVisita(g.visita_scadenza)).length;
   document.getElementById('conto').innerHTML =
-    '<b>' + lista.length + '</b> ' + (lista.length === 1 ? 'persona in rosa' : 'in rosa') +
-    (lista.length ? ' <span style="color:var(--ink-3)">·</span> ' + anspi + ' ANSPI · ' + csi + ' CSI' : '') +
+    '<b>' + rosaMostrata.length + '</b> ' + (rosaMostrata.length === 1 ? 'persona in rosa' : 'in rosa') +
+    (rosaMostrata.length ? ' <span style="color:var(--ink-3)">·</span> ' + anspi + ' ANSPI · ' + csi + ' CSI' : '') +
     (senzaVisita ? ' <span style="color:var(--ink-3)">·</span> <b style="color:var(--kit-rosso)">' +
       senzaVisita + '</b> da sistemare' : '');
 
-  if (lista.length === 0) {
+  if (rosaMostrata.length === 0) {
     elenco.innerHTML = '<p class="vuoto">La rosa è ancora vuota. Il primo che si aggiunge apre le danze.</p>';
     return;
   }
 
   for (const [ruolo, titolo] of REPARTI) {
-    const dentro = lista.filter(g => g.ruolo === ruolo);
+    const dentro = rosaMostrata.filter(g => g.ruolo === ruolo);
     if (dentro.length === 0) continue;
 
     const sezione = document.createElement('section');
@@ -319,7 +319,7 @@ function disegna() {
     sezione.innerHTML = '<h2></h2><ul class="rosa"></ul>';
     sezione.querySelector('h2').textContent = titolo;
 
-    const lista = sezione.querySelector('ul');
+    const voci = sezione.querySelector('ul');
     for (const g of dentro) {
       const voce = document.createElement('li');
       const scheda = document.createElement('button');
@@ -352,7 +352,7 @@ function disegna() {
       scheda.onclick = () => apriTessere(g);
 
       voce.appendChild(scheda);
-      lista.appendChild(voce);
+      voci.appendChild(voce);
     }
     elenco.appendChild(sezione);
   }

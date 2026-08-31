@@ -73,6 +73,21 @@ python3 -m http.server 8000
 
 Poi si apre <http://localhost:8000>. Si ferma con `Ctrl+C`.
 
+## Controllare che le pagine funzionino
+
+`strumenti/prova-pagine.js` carica ogni pagina in un browser finto, con risposte
+finte al posto di Supabase, e verifica che disegni davvero qualcosa — poi tocca
+tutti i pulsanti per aprire le finestre. È facoltativo e non c'entra con il sito
+pubblicato:
+
+```bash
+cd strumenti && npm install jsdom && node prova-pagine.js ..
+```
+
+Serve perché controllare la sola sintassi non basta: una variabile che ne copre
+un'altra passa qualunque controllo sintattico e poi fa morire la funzione alla
+prima riga utile, lasciando la pagina vuota senza dire niente.
+
 ## Pubblicare
 
 Il sito è collegato a questa repository: **ogni push su `main` fa un deploy
