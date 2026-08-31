@@ -78,6 +78,7 @@
 
   .nomi { margin: 9px 0 0; font-size: 12.5px; color: var(--ink-3); line-height: 1.6; }
   .nomi b { color: var(--ink-2); font-weight: 600; }
+  .nomi.assenti { margin-top: 4px; opacity: .75; }
 
   .azioni-riga { display: flex; flex-wrap: wrap; gap: 8px; margin: 13px 0 0; }
   .stato-bollo {
@@ -145,7 +146,10 @@
     }
     #stampa td.casella { width: 9mm; }
     #stampa td.num { width: 12mm; font-weight: 700; text-align: center; }
-    #stampa td:last-child { white-space: normal; font-size: 10pt; }
+    #stampa td.tessera { white-space: normal; font-size: 10pt; }
+    #stampa td.documento { width: 34mm; }
+    /* le righe vuote devono essere abbastanza alte da scriverci a penna */
+    #stampa tbody td { height: 7.5mm; }
     #stampa tr.forse td { color: #444; }
     #stampa .riassunto { margin: 6mm 0 0; font-size: 10pt; color: #000; }
     #stampa .avvertenza { margin: 2mm 0 0; font-size: 10pt; font-weight: 700; }
@@ -506,6 +510,7 @@ function scheda(g, passata) {
       <div class="conteggi"></div>
       <p class="regola" hidden></p>
       <p class="nomi" hidden></p>
+      <p class="nomi assenti" hidden></p>
       <div class="azioni-riga"></div>
     </div>`;
 
@@ -578,14 +583,24 @@ function scheda(g, passata) {
     }
   }
 
+  const etichetta = (d) => d.nome + ' ' + d.iniziale +
+    (d.e_giocatore === false ? ' (' + d.ruolo + ')' : '');
+
   const dentro = risposte.filter(d => d.stato === 'si' || d.stato === 'forse');
   if (dentro.length) {
     const nomi = carta.querySelector('.nomi');
     nomi.innerHTML = '<b>Ci sono:</b> ' +
-      dentro.map(d => d.nome + ' ' + d.iniziale +
-        (d.e_giocatore === false ? ' (' + d.ruolo + ')' : '') +
-        (d.stato === 'forse' ? ' (forse)' : '')).join(' · ');
+      dentro.map(d => etichetta(d) + (d.stato === 'forse' ? ' (forse)' : '')).join(' · ');
     nomi.hidden = false;
+  }
+
+  // Chi ha detto no serve saperlo qui, per capire su chi non contare senza
+  // aprire niente. Nella distinta invece non ci va: quella è di chi gioca.
+  const fuori = risposte.filter(d => d.stato === 'no');
+  if (fuori.length) {
+    const assenti = carta.querySelector('.nomi.assenti');
+    assenti.innerHTML = '<b>Non ci sono:</b> ' + fuori.map(etichetta).join(' · ');
+    assenti.hidden = false;
   }
 
   const azioni = carta.querySelector('.azioni-riga');
@@ -938,6 +953,9 @@ function tessereDi(r) {
   return t.length ? t.join('  ·  ') : '—';
 }
 
+/* Quante righe stampare comunque, anche se i disponibili sono meno. */
+const RIGHE_FOGLIO = 18;
+
 /** Il certificato copre il giorno della partita? */
 const copertoDaVisita = (r, g) =>
   !!r.visita_scadenza && r.visita_scadenza >= perIlModulo(g.inizio).slice(0, 10);
@@ -1008,26 +1026,35 @@ function costruisciFoglio(g, righe, conti) {
 
   const tabella = document.createElement('table');
   tabella.innerHTML =
-    '<thead><tr><th></th><th>N.</th><th>Nome e cognome</th><th>Tessera</th></tr></thead><tbody></tbody>';
+    '<thead><tr><th></th><th>N.</th><th>Nome e cognome</th><th>Tessera</th>' +
+    '<th>N. documento</th></tr></thead><tbody></tbody>';
   const corpo = tabella.querySelector('tbody');
 
-  for (const r of righe) {
+  // Sempre almeno RIGHE_FOGLIO righe: al campo capita che si presenti
+  // qualcuno che non aveva risposto, e ci vuole lo spazio per scriverlo.
+  // Se i disponibili sono di più, si allunga: nessuno resta fuori.
+  for (let i = 0; i < Math.max(RIGHE_FOGLIO, righe.length); i++) {
+    const r = righe[i];
     const riga = document.createElement('tr');
-    if (r.stato === 'forse') riga.className = 'forse';
-    riga.innerHTML = '<td class="casella"></td><td class="num"></td><td></td><td></td>';
-    const celle = riga.querySelectorAll('td');
-    celle[1].textContent = r.numero ?? '';
-    celle[2].textContent = r.nome + ' ' + r.cognome + (r.stato === 'forse' ? ' (forse)' : '');
-    celle[3].textContent = tessereDi(r);
+    if (r && r.stato === 'forse') riga.className = 'forse';
+    riga.innerHTML = '<td class="casella"></td><td class="num"></td><td></td>' +
+                     '<td class="tessera"></td><td class="documento"></td>';
+    if (r) {
+      const celle = riga.querySelectorAll('td');
+      celle[1].textContent = r.numero ?? '';
+      celle[2].textContent = r.nome + ' ' + r.cognome + (r.stato === 'forse' ? ' (forse)' : '');
+      celle[3].textContent = tessereDi(r);
+    }
     corpo.appendChild(riga);
   }
   foglio.appendChild(tabella);
 
   const riassunto = document.createElement('p');
   riassunto.className = 'riassunto';
-  riassunto.textContent = righe.length
-    ? conti.riassunto + '. La casella a sinistra serve per spuntare chi si presenta.'
-    : 'Nessuna disponibilità registrata per questa giornata.';
+  riassunto.textContent = (righe.length
+    ? conti.riassunto + '. '
+    : 'Nessuna disponibilità registrata per questa giornata. ') +
+    'La casella a sinistra serve per spuntare chi si presenta; le righe vuote per chi arriva senza aver risposto.';
   foglio.appendChild(riassunto);
 
   // Non dovrebbe capitare, perché senza certificato non si dà la disponibilità.

@@ -43,6 +43,7 @@ const DATI = {
     { giornata_id: 1, giocatore_id: 1, nome: 'Thomas', iniziale: 'F.', numero: 1, tessera_anspi: true,  tessera_csi: false, stato: 'si' },
     { giornata_id: 1, giocatore_id: 2, nome: 'Nicolò', iniziale: 'V.', numero: 8, ruolo: 'giocatore', e_giocatore: true, tessera_anspi: false, tessera_csi: true, stato: 'forse' },
     { giornata_id: 1, giocatore_id: 4, nome: 'Marco', iniziale: 'B.', numero: null, ruolo: 'allenatore', e_giocatore: false, tessera_anspi: false, tessera_csi: false, stato: 'si' },
+    { giornata_id: 1, giocatore_id: 3, nome: 'Anna', iniziale: 'R.', numero: null, ruolo: 'portiere', e_giocatore: true, tessera_anspi: true, tessera_csi: false, stato: 'no' },
   ],
   classifica: [
     { id: 1, girone: 'A', nome: 'CL',          noi: false, giocate: 1, vinte: 1, pari: 0, perse: 0, gol_fatti: 2, gol_subiti: 0, differenza: 2,  punti: 3 },
@@ -59,6 +60,15 @@ const DATI = {
     { id: 1, girone: 'B', casa_id: 5, casa: 'Green Lions', ospite_id: 6, ospite: 'Smama', gol_casa: 3, gol_ospite: 1, giocata_il: '2026-09-14' },
   ],
   kit_presi: [{ numero: 8, nome: 'Nicolò' }],
+  // la distinta e' una funzione, non una vista: risponde a /rpc/distinta
+  distinta: [
+    { numero: 1, nome: 'Thomas', cognome: 'Ferrari', tessera_anspi: true, tessera_csi: false,
+      tessera_anspi_numero: '00123-AB', tessera_csi_numero: null, visita_scadenza: '2099-01-01', stato: 'si' },
+    { numero: 8, nome: 'Nicolò', cognome: 'Venieri', tessera_anspi: false, tessera_csi: true,
+      tessera_anspi_numero: null, tessera_csi_numero: 'CSI/9910', visita_scadenza: '2099-01-01', stato: 'forse' },
+  ],
+  da_sollecitare: [{ id: 3, nome: 'Anna', cognome: 'Rossi', telefono: '3331234567' }],
+  rosa_gestione: [],
 };
 
 const PAGINE = [
