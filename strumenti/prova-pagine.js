@@ -26,10 +26,10 @@ const RADICE = process.argv[2];
 
 const DATI = {
   rosa_pubblica: [
-    { id: 1, nome: 'Thomas',  iniziale: 'F.', numero: 1,  ruolo: 'giocatore',      tessera_anspi: true,  tessera_csi: false, visita_scadenza: null },
-    { id: 2, nome: 'Nicolò',  iniziale: 'V.', numero: 8,  ruolo: 'giocatore',      tessera_anspi: false, tessera_csi: true,  visita_scadenza: '2027-06-30' },
-    { id: 3, nome: 'Anna',    iniziale: 'R.', numero: null, ruolo: 'portiere',     tessera_anspi: true,  tessera_csi: false, visita_scadenza: '2026-09-05' },
-    { id: 4, nome: 'Marco',   iniziale: 'B.', numero: 10, ruolo: 'allenatore',     tessera_anspi: false, tessera_csi: false, visita_scadenza: null },
+    { id: 1, nome: 'Thomas',  iniziale: 'F.', numero: 1,  ruolo: 'giocatore',      tessera_anspi: true,  tessera_csi: false, visita_scadenza: null, e_giocatore: true },
+    { id: 2, nome: 'Nicolò',  iniziale: 'V.', numero: 8,  ruolo: 'giocatore',      tessera_anspi: false, tessera_csi: true,  visita_scadenza: '2027-06-30', e_giocatore: true },
+    { id: 3, nome: 'Anna',    iniziale: 'R.', numero: null, ruolo: 'portiere',     tessera_anspi: true,  tessera_csi: false, visita_scadenza: '2026-09-05', e_giocatore: true },
+    { id: 4, nome: 'Marco',   iniziale: 'B.', numero: 10, ruolo: 'allenatore',     tessera_anspi: true,  tessera_csi: true,  visita_scadenza: null, e_giocatore: false },
   ],
   calendario_pubblico: [
     { id: 1, titolo: 'Campionato 1a', tipo: 'partita', avversario: 'Smama', inizio: '2099-09-14T13:30:00+00:00',
@@ -41,7 +41,8 @@ const DATI = {
   ],
   disponibilita_pubblica: [
     { giornata_id: 1, giocatore_id: 1, nome: 'Thomas', iniziale: 'F.', numero: 1, tessera_anspi: true,  tessera_csi: false, stato: 'si' },
-    { giornata_id: 1, giocatore_id: 2, nome: 'Nicolò', iniziale: 'V.', numero: 8, tessera_anspi: false, tessera_csi: true,  stato: 'forse' },
+    { giornata_id: 1, giocatore_id: 2, nome: 'Nicolò', iniziale: 'V.', numero: 8, ruolo: 'giocatore', e_giocatore: true, tessera_anspi: false, tessera_csi: true, stato: 'forse' },
+    { giornata_id: 1, giocatore_id: 4, nome: 'Marco', iniziale: 'B.', numero: null, ruolo: 'allenatore', e_giocatore: false, tessera_anspi: false, tessera_csi: false, stato: 'si' },
   ],
   classifica: [
     { id: 1, girone: 'A', nome: 'CL',          noi: false, giocate: 1, vinte: 1, pari: 0, perse: 0, gol_fatti: 2, gol_subiti: 0, differenza: 2,  punti: 3 },

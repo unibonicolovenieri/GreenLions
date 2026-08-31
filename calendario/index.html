@@ -481,7 +481,14 @@ function sezione(titolo, lista, passata) {
 function scheda(g, passata) {
   const annullata = g.stato === 'annullata';
   const risposte = disponibilita.filter(d => d.giornata_id === g.id);
-  const conta = (stato) => risposte.filter(d => d.stato === stato).length;
+
+  // I numeri servono a capire se si scende in campo, quindi contano i
+  // giocatori. Chi allena c'è ma non gioca: sta in un conto suo, altrimenti
+  // "2 ci sono" farebbe credere di avere due giocatori quando ne hai uno.
+  const rispostaDiGiocatori = risposte.filter(d => d.e_giocatore !== false);
+  const staffPresente = risposte.filter(d =>
+    d.e_giocatore === false && (d.stato === 'si' || d.stato === 'forse'));
+  const conta = (stato) => rispostaDiGiocatori.filter(d => d.stato === stato).length;
 
   const carta = document.createElement('article');
   carta.className = 'giornata' + (annullata ? ' annullata' : passata ? ' passata' : '');
@@ -548,6 +555,7 @@ function scheda(g, passata) {
 
   if (anspiSi) conteggi.appendChild(chipTessera('anspi', anspiSi + ' ANSPI'));
   if (csiSi)   conteggi.appendChild(chipTessera('csi',   csiSi + ' CSI'));
+  if (staffPresente.length) conteggi.appendChild(chipTessera('', staffPresente.length + ' staff'));
 
   // L'avviso ha senso solo su quello che deve ancora succedere.
   if (!annullata && !passata) {
@@ -574,7 +582,9 @@ function scheda(g, passata) {
   if (dentro.length) {
     const nomi = carta.querySelector('.nomi');
     nomi.innerHTML = '<b>Ci sono:</b> ' +
-      dentro.map(d => d.nome + ' ' + d.iniziale + (d.stato === 'forse' ? ' (forse)' : '')).join(' · ');
+      dentro.map(d => d.nome + ' ' + d.iniziale +
+        (d.e_giocatore === false ? ' (' + d.ruolo + ')' : '') +
+        (d.stato === 'forse' ? ' (forse)' : '')).join(' · ');
     nomi.hidden = false;
   }
 
@@ -672,6 +682,9 @@ function controllaVisita() {
 
   const p = rosa.find(r => String(r.id) === document.getElementById('scegliGiocatore').value);
   if (!p || !dispScelta) return;
+
+  // chi allena non scende in campo: niente certificato da controllare
+  if (p.e_giocatore === false) return;
 
   // la data della partita, non quella di oggi
   const giorno = perIlModulo(dispScelta.inizio).slice(0, 10);

@@ -187,6 +187,17 @@ tessera, schede già compilate. Il codice resta **solo in memoria**, per quella
 visita: si ricarica la pagina e si torna alla vista di tutti. Senza sblocco la
 pagina funziona esattamente come prima.
 
+### Chi gioca e chi no
+
+I ruoli `allenatore` e `staff` stanno nel gruppo ma **non sono giocatori**: non
+entrano nel conto della rosa, non vanno nella distinta, non contano nel minimo
+ANSPI e non gli viene chiesto il certificato medico. Possono comunque dare la
+disponibilità — così sanno quando si gioca e ricevono l'invito in calendario —
+e compaiono nell'elenco dei presenti con il loro ruolo accanto.
+
+La regola sta in un posto solo, la funzione `e_giocatore(ruolo)`: se domani
+nascono altri ruoli non da campo, si aggiungono lì e tutto il resto segue.
+
 ### La visita medica
 
 Ogni persona in rosa ha `visita_scadenza`, una **data**: quella scritta sul
@@ -275,6 +286,7 @@ Confident/
 ├── aggiornamento-6-risultati-classifica.sql
 ├── aggiornamento-7-visita-medica.sql
 ├── aggiornamento-8-numeri-tessera.sql
+├── aggiornamento-9-staff-fuori-rosa.sql
 ├── ISTRUZIONI.md                       come è stata messa online la pagina divise
 └── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
 ```

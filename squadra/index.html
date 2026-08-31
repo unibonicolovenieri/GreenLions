@@ -194,12 +194,16 @@
       <input name="csiNumero" maxlength="40" autocapitalize="characters" placeholder="come sta scritto sulla tessera">
     </label>
 
-    <label><span>Scadenza della visita medica</span>
-      <input name="visita" type="date">
-    </label>
-    <p class="appunto" style="margin:-6px 0 14px;font-size:12.5px;color:var(--ink-2)">
-      La data scritta sul certificato, non quella della visita. Senza, la persona non
-      può darsi disponibile per nessuna partita. Lascia vuoto per toglierla.</p>
+    <div id="zonaVisita">
+      <label><span>Scadenza della visita medica</span>
+        <input name="visita" type="date">
+      </label>
+      <p class="appunto" style="margin:-6px 0 14px;font-size:12.5px;color:var(--ink-2)">
+        La data scritta sul certificato, non quella della visita. Senza, la persona non
+        può darsi disponibile per nessuna partita. Lascia vuoto per toglierla.</p>
+    </div>
+    <p class="appunto" id="notaFuoriCampo" hidden style="margin:0 0 14px;font-size:12.5px;color:var(--ink-2)">
+      Chi allena non scende in campo: il certificato medico non gli serve.</p>
 
     <label><span>Codice di gestione</span><input name="codice" required maxlength="40" autocapitalize="characters" placeholder="il tuo, non quello del gruppo"></label>
 
@@ -296,14 +300,21 @@ function disegna() {
   elenco.innerHTML = '';
 
   const rosaMostrata = inElenco();
-  const anspi = rosaMostrata.filter(g => g.tessera_anspi).length;
-  const csi   = rosaMostrata.filter(g => g.tessera_csi).length;
-  const senzaVisita = rosaMostrata.filter(g => statoVisita(g.visita_scadenza)).length;
+  // Chi allena sta nel gruppo ma non gioca: fuori dal conto della rosa, dalle
+  // tessere e dal certificato medico, che sono regole su chi scende in campo.
+  const giocanti = rosaMostrata.filter(g => g.e_giocatore !== false);
+  const fuoriCampo = rosaMostrata.filter(g => g.e_giocatore === false);
+
+  const anspi = giocanti.filter(g => g.tessera_anspi).length;
+  const csi   = giocanti.filter(g => g.tessera_csi).length;
+  const senzaVisita = giocanti.filter(g => statoVisita(g.visita_scadenza)).length;
   document.getElementById('conto').innerHTML =
-    '<b>' + rosaMostrata.length + '</b> ' + (rosaMostrata.length === 1 ? 'persona in rosa' : 'in rosa') +
-    (rosaMostrata.length ? ' <span style="color:var(--ink-3)">·</span> ' + anspi + ' ANSPI · ' + csi + ' CSI' : '') +
+    '<b>' + giocanti.length + '</b> ' + (giocanti.length === 1 ? 'giocatore in rosa' : 'giocatori in rosa') +
+    (giocanti.length ? ' <span style="color:var(--ink-3)">·</span> ' + anspi + ' ANSPI · ' + csi + ' CSI' : '') +
     (senzaVisita ? ' <span style="color:var(--ink-3)">·</span> <b style="color:var(--kit-rosso)">' +
-      senzaVisita + '</b> da sistemare' : '');
+      senzaVisita + '</b> senza visita' : '') +
+    (fuoriCampo.length ? ' <span style="color:var(--ink-3)">·</span> ' + fuoriCampo.length +
+      (fuoriCampo.length === 1 ? ' fra staff' : ' fra allenatori e staff') : '');
 
   if (rosaMostrata.length === 0) {
     elenco.innerHTML = '<p class="vuoto">La rosa è ancora vuota. Il primo che si aggiunge apre le danze.</p>';
@@ -341,7 +352,8 @@ function disegna() {
       if (g.tessera_anspi) tessere.appendChild(bollino('anspi', 'ANSPI'));
       if (g.tessera_csi)   tessere.appendChild(bollino('csi', 'CSI'));
       if (!g.tessera_anspi && !g.tessera_csi) tessere.appendChild(bollino('nessuna', 'no tessera'));
-      const visita = statoVisita(g.visita_scadenza);
+      // all'allenatore il certificato non serve: non ha senso segnalarlo mancante
+      const visita = g.e_giocatore === false ? null : statoVisita(g.visita_scadenza);
       if (visita) tessere.appendChild(bollino(visita.classe, visita.testo));
 
       scheda.setAttribute('aria-label',
@@ -393,6 +405,12 @@ function apriTessere(g) {
   moduloTessere.elements.anspi.checked = !!g.tessera_anspi;
   moduloTessere.elements.csi.checked   = !!g.tessera_csi;
   moduloTessere.elements.visita.value      = g.visita_scadenza || '';
+
+  // a chi non gioca il certificato non si chiede nemmeno
+  const gioca = g.e_giocatore !== false;
+  document.getElementById('zonaVisita').hidden = !gioca;
+  document.getElementById('notaFuoriCampo').hidden = gioca;
+  if (!gioca) moduloTessere.elements.visita.value = '';
   moduloTessere.elements.anspiNumero.value = g.tessera_anspi_numero || '';
   moduloTessere.elements.csiNumero.value   = g.tessera_csi_numero || '';
   if (codiceGestione) moduloTessere.elements.codice.value = codiceGestione;
