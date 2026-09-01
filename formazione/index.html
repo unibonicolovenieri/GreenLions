@@ -50,6 +50,33 @@
   .pedina[data-portiere] .tondo { background: var(--kit-bianco); color: #14647a; }
   .pedina[data-anspi] .tondo { box-shadow: 0 0 0 2px var(--kit-verde), 0 0 0 4px #fff, 0 2px 5px rgba(0,0,0,.35); }
   .pedina.presa { cursor: grabbing; z-index: 5; }
+
+  /* ---- la palla ---- */
+  .palla {
+    position: absolute; transform: translate(-50%, -50%);
+    width: 30px; height: 30px; padding: 0; border: none; background: none;
+    cursor: grab; touch-action: none; z-index: 4; -webkit-tap-highlight-color: transparent;
+  }
+  .palla svg { width: 100%; height: 100%; display: block;
+               filter: drop-shadow(0 2px 4px rgba(0,0,0,.45)); }
+  .palla.scelta svg { filter: drop-shadow(0 0 0 3px var(--kit-rosso)) drop-shadow(0 2px 4px rgba(0,0,0,.45)); }
+
+  /* ---- la lavagna dei disegni ---- */
+  .lavagna {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 3;
+  }
+  .campo.penna .lavagna { z-index: 9; }
+  .campo.penna { cursor: crosshair; }
+
+  .attrezzi { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin: 14px 0 0; }
+  .attrezzi .btn.acceso { background: var(--kit-verde); color: #fff; border-color: var(--kit-verde); }
+  @media (prefers-color-scheme: dark) { .attrezzi .btn.acceso { background: var(--accent); color: var(--accent-ink); } }
+  .colore {
+    width: 30px; height: 30px; padding: 0; border-radius: 50%; cursor: pointer;
+    border: 2px solid var(--line);
+  }
+  .colore.acceso { border-color: var(--ink); box-shadow: 0 0 0 2px var(--ink); }
   .pedina.scelta .tondo { box-shadow: 0 0 0 3px var(--kit-rosso), 0 2px 5px rgba(0,0,0,.35); }
 
   /* ---- panchina ---- */
@@ -147,11 +174,37 @@
           <rect x="38" y="139" width="24" height="8"/>
         </g>
       </svg>
+
+      <!-- I disegni: stesso sistema di coordinate del campo, così le frecce
+           stanno dove le hai messe su qualunque schermo. -->
+      <svg class="lavagna" id="lavagna" viewBox="0 0 100 150" aria-hidden="true">
+        <defs>
+          <marker id="punta" viewBox="0 0 10 10" refX="8" refY="5"
+                  markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M 0 1 L 9 5 L 0 9 z" fill="context-stroke"/>
+          </marker>
+        </defs>
+        <g id="tratti" fill="none" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></g>
+      </svg>
+    </div>
+
+    <div class="attrezzi">
+      <button type="button" class="btn ghost piccolo acceso" id="modoSposta">Sposta</button>
+      <button type="button" class="btn ghost piccolo" id="modoPenna">Penna</button>
+      <button type="button" class="btn ghost piccolo" id="tipoTratto">Freccia</button>
+      <button type="button" class="colore acceso" id="col-giallo" style="background:#efc41a" aria-label="giallo"></button>
+      <button type="button" class="colore" id="col-bianco" style="background:#ffffff" aria-label="bianco"></button>
+      <button type="button" class="colore" id="col-rosso" style="background:#e0393e" aria-label="rosso"></button>
+      <button type="button" class="btn ghost piccolo" id="indietro">Annulla tratto</button>
+      <button type="button" class="btn ghost piccolo" id="cancella">Cancella disegni</button>
+      <button type="button" class="btn ghost piccolo" id="metPalla">Palla</button>
     </div>
 
     <p class="istruzioni" id="istruzioni">
       Tocca un giocatore in panchina e poi il punto del campo dove vuoi metterlo. Tocca chi è già
       in campo per spostarlo, o trascinalo. Per rimandarlo in panchina, toccalo e poi tocca la panchina.
+      Con <b>Penna</b> si disegna invece di spostare — e con la Apple Pencil si disegna sempre,
+      anche in modalità Sposta: il dito muove le pedine, la matita traccia.
     </p>
 
     <p class="titoletto">In panchina</p>
@@ -218,6 +271,14 @@ let rosa = [];
 let risposte = [];
 let posti = new Map();      // giocatore_id -> {x, y}
 let scelto = null;          // chi sto spostando col tocco
+let palla = null;           // {x, y} oppure niente palla in campo
+let tratti = [];            // [{c: colore, f: freccia, p: [[x,y],...]}]
+let modo = 'sposta';        // 'sposta' oppure 'penna'
+let colore = 'giallo';
+let conFreccia = true;
+let stoTracciando = null;   // il tratto in corso
+
+const COLORI = { giallo: '#efc41a', bianco: '#ffffff', rosso: '#e0393e' };
 
 const campo     = document.getElementById('campo');
 const panchina  = document.getElementById('panchina');
@@ -286,8 +347,13 @@ async function caricaGiornata() {
     glLeggi('disponibilita_pubblica', 'select=*&giornata_id=eq.' + giornata.id)
   ]);
   const schema = await glLeggi('formazione_pubblica', 'select=*&giornata_id=eq.' + giornata.id);
+  const board = await glLeggi('lavagna_pubblica', 'select=*&giornata_id=eq.' + giornata.id);
 
   posti = new Map(schema.map(p => [p.giocatore_id, { x: Number(p.x), y: Number(p.y) }]));
+
+  const l = board[0];
+  palla  = (l && l.palla_x != null) ? { x: Number(l.palla_x), y: Number(l.palla_y) } : null;
+  tratti = (l && Array.isArray(l.tratti)) ? l.tratti : [];
   document.getElementById('tavolo').hidden = false;
   disegna();
 }
@@ -352,8 +418,45 @@ function disegna() {
     panchina.appendChild(chip);
   }
 
+  disegnaPalla();
+  disegnaTratti();
+
   campo.classList.toggle('posando', scelto !== null);
   giudica(gente);
+}
+
+function disegnaPalla() {
+  const vecchia = campo.querySelector('.palla');
+  if (vecchia) vecchia.remove();
+  if (!palla) return;
+
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'palla' + (scelto === 'palla' ? ' scelta' : '');
+  b.style.left = palla.x + '%';
+  b.style.top  = palla.y + '%';
+  b.setAttribute('aria-label', 'La palla');
+  b.innerHTML =
+    '<svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="#fff" stroke="#1d1d1d" stroke-width="1.6"/>' +
+    '<path d="M16 8 L21 11.6 L19.1 17.5 L12.9 17.5 L11 11.6 Z" fill="#1d1d1d"/>' +
+    '<path d="M16 3.5 L16 8 M21 11.6 L25.6 10.2 M19.1 17.5 L22.2 21.6 M12.9 17.5 L9.8 21.6 M11 11.6 L6.4 10.2"' +
+    ' stroke="#1d1d1d" stroke-width="1.5" fill="none"/></svg>';
+  collegaPedina(b, 'palla');
+  campo.appendChild(b);
+}
+
+function disegnaTratti() {
+  const dove = document.getElementById('tratti');
+  dove.innerHTML = '';
+  for (const t of tratti.concat(stoTracciando ? [stoTracciando] : [])) {
+    if (!t.p || t.p.length < 2) continue;
+    const linea = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    // y in percentuale, il campo è alto 150 unità: da 0..100 a 0..150
+    linea.setAttribute('points', t.p.map(([x, y]) => x + ',' + (y * 1.5)).join(' '));
+    linea.setAttribute('stroke', COLORI[t.c] || COLORI.giallo);
+    if (t.f) linea.setAttribute('marker-end', 'url(#punta)');
+    dove.appendChild(linea);
+  }
 }
 
 /* ---------------- i controlli di regolamento ---------------- */
@@ -399,9 +502,9 @@ function dovunque(ev) {
 }
 
 campo.addEventListener('click', (ev) => {
-  if (ev.target.closest('.pedina')) return;   // il tocco su una pedina lo gestisce lei
-  if (scelto === null) return;
-  posti.set(scelto, dovunque(ev));
+  if (ev.target.closest('.pedina, .palla')) return;  // il tocco sopra lo gestisce lei
+  if (modo === 'penna' || scelto === null) return;
+  metti(scelto, dovunque(ev));
   scelto = null;
   disegna();
 });
@@ -412,10 +515,16 @@ panchina.addEventListener('click', (ev) => {
   if (scelto !== null && posti.has(scelto)) { posti.delete(scelto); scelto = null; disegna(); }
 });
 
+/** Posare qualcosa: una pedina o la palla, che si muovono uguale. */
+function metti(id, dove) {
+  if (id === 'palla') palla = dove; else posti.set(id, dove);
+}
+
 function collegaPedina(pedina, id) {
   let trascinando = false;
 
   pedina.addEventListener('pointerdown', (ev) => {
+    if (disegnaInvece(ev)) return;   // con la penna si traccia, non si sposta
     // Eventi puntatore e non drag-and-drop: quello su Safari mobile non c'è.
     pedina.setPointerCapture(ev.pointerId);
     trascinando = false;
@@ -424,6 +533,7 @@ function collegaPedina(pedina, id) {
 
   pedina.addEventListener('pointermove', (ev) => {
     if (!pedina.hasPointerCapture(ev.pointerId)) return;
+    if (stoTracciando) return;
     trascinando = true;
     const d = dovunque(ev);
     pedina.style.left = d.x + '%';
@@ -433,7 +543,7 @@ function collegaPedina(pedina, id) {
   pedina.addEventListener('pointerup', (ev) => {
     pedina.classList.remove('presa');
     if (trascinando) {
-      posti.set(id, dovunque(ev));
+      metti(id, dovunque(ev));
       scelto = null;
     } else {
       // tocco secco: la scelgo, così il tocco dopo la sposta
@@ -444,6 +554,77 @@ function collegaPedina(pedina, id) {
 
   pedina.addEventListener('pointercancel', () => { pedina.classList.remove('presa'); disegna(); });
 }
+
+/* ---------------- la penna ---------------- */
+
+/**
+ * Si disegna quando la penna è accesa, oppure sempre se il puntatore è
+ * una matita: sull'iPad il dito sposta le pedine e la Apple Pencil traccia,
+ * senza dover cambiare modalità ogni volta.
+ */
+const disegnaInvece = (ev) => modo === 'penna' || ev.pointerType === 'pen';
+
+campo.addEventListener('pointerdown', (ev) => {
+  if (!disegnaInvece(ev)) return;
+  ev.preventDefault();
+  campo.setPointerCapture(ev.pointerId);
+  const d = dovunque(ev);
+  stoTracciando = { c: colore, f: conFreccia, p: [[d.x, d.y]] };
+});
+
+campo.addEventListener('pointermove', (ev) => {
+  if (!stoTracciando || !campo.hasPointerCapture(ev.pointerId)) return;
+  const d = dovunque(ev);
+  const [ux, uy] = stoTracciando.p[stoTracciando.p.length - 1];
+  // un punto ogni tanto, non uno per pixel: il tratto resta uguale a vedersi
+  // e non gonfia quello che finisce nel database
+  if (Math.hypot(d.x - ux, d.y - uy) < 0.9) return;
+  stoTracciando.p.push([Number(d.x.toFixed(1)), Number(d.y.toFixed(1))]);
+  disegnaTratti();
+});
+
+function chiudiTratto() {
+  if (!stoTracciando) return;
+  if (stoTracciando.p.length >= 2) tratti.push(stoTracciando);
+  stoTracciando = null;
+  disegnaTratti();
+}
+campo.addEventListener('pointerup', chiudiTratto);
+campo.addEventListener('pointercancel', chiudiTratto);
+
+function accendi(quale) {
+  modo = quale;
+  document.getElementById('modoSposta').classList.toggle('acceso', quale === 'sposta');
+  document.getElementById('modoPenna').classList.toggle('acceso', quale === 'penna');
+  campo.classList.toggle('penna', quale === 'penna');
+  if (quale === 'penna') { scelto = null; disegna(); }
+}
+document.getElementById('modoSposta').onclick = () => accendi('sposta');
+document.getElementById('modoPenna').onclick  = () => accendi('penna');
+
+document.getElementById('tipoTratto').onclick = (ev) => {
+  conFreccia = !conFreccia;
+  ev.target.textContent = conFreccia ? 'Freccia' : 'Linea';
+};
+
+for (const nome of Object.keys(COLORI)) {
+  document.getElementById('col-' + nome).onclick = () => {
+    colore = nome;
+    for (const altro of Object.keys(COLORI)) {
+      document.getElementById('col-' + altro).classList.toggle('acceso', altro === nome);
+    }
+  };
+}
+
+document.getElementById('indietro').onclick = () => { tratti.pop(); disegnaTratti(); };
+document.getElementById('cancella').onclick = () => { tratti = []; disegnaTratti(); };
+
+document.getElementById('metPalla').onclick = () => {
+  // in mezzo al campo se non c'è, via se c'è già
+  palla = palla ? null : { x: 50, y: 50 };
+  scelto = null;
+  disegna();
+};
 
 /* ---------------- moduli ---------------- */
 
@@ -475,6 +656,8 @@ function applica(nome) {
   disegna();
 }
 
+// Svuota il campo tocca le pedine, non i disegni: sono due gomme diverse,
+// e cancellare le frecce mentre si rifà la formazione sarebbe una sorpresa.
 document.getElementById('svuota').onclick = () => { posti = new Map(); scelto = null; disegna(); };
 
 /* ---------------- salvataggio ---------------- */
@@ -500,11 +683,13 @@ async function manda(codice) {
     await glChiama('salva_formazione', {
       _codice: codice,
       _giornata_id: giornata.id,
-      _posti: [...posti].map(([g, d]) => ({ g, x: d.x, y: d.y }))
+      _posti: [...posti].map(([g, d]) => ({ g, x: d.x, y: d.y })),
+      _palla: palla,
+      _tratti: tratti
     });
     salvaCodice(codice);
     finestraCodice.close();
-    avvisa(esito, 'Formazione salvata. La vede tutta la squadra.');
+    avvisa(esito, 'Salvato: pedine, palla e frecce. Li vede tutta la squadra.');
   } catch (e) {
     // il codice tenuto in tasca non vale più: meglio dimenticarlo
     try { sessionStorage.removeItem(CHIAVE_CODICE); } catch {}

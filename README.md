@@ -269,6 +269,17 @@ panchina per il cambio, se manca il portiere e se qualcuno ha il certificato
 scaduto per quella data. Sono le stesse regole che il calendario racconta a
 parole; qui le vedi mentre decidi.
 
+C'è anche la **palla**, che si sposta come una pedina, e una **penna** per
+tracciare frecce e movimenti: tre colori, tratto con o senza punta, annulla
+l'ultimo tratto e cancella tutto. Su iPad il dito sposta le pedine e la **Apple
+Pencil disegna**, senza cambiare modalità: la penna riconosce il tipo di
+puntatore.
+
+Pedine, palla e frecce si salvano **insieme**, in una chiamata sola: una lavagna
+è una cosa sola, e mezza salvata sarebbe lo schema di adesso con le frecce di
+ieri. I tratti sono liste di punti in percentuale, semplificati mentre si
+disegnano, e il database rifiuta una lavagna troppo pesante.
+
 Si salva con il **codice squadra** e non con quello di gestione: l'allenatore è
 esterno, il codice di gestione non ce l'ha, e la formazione è mestiere suo. In
 campo può andarci solo chi ha detto sì o forse, e lo impone il database.
@@ -365,6 +376,7 @@ Confident/
 ├── aggiornamento-11-modulo-distinta.sql
 ├── aggiornamento-12-anagrafica-dalla-scheda.sql
 ├── aggiornamento-13-formazione.sql
+├── aggiornamento-14-palla-e-lavagna.sql
 ├── ISTRUZIONI.md                       come è stata messa online la pagina divise
 └── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
 ```

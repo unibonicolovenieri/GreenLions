@@ -62,6 +62,8 @@ const DATI = {
   ],
   kit_presi: [{ numero: 8, nome: 'Nicolò' }],
   formazione_pubblica: [],
+  lavagna_pubblica: [{ giornata_id: 1, palla_x: 50, palla_y: 50,
+    tratti: [{ c: 'giallo', f: true, p: [[20,60],[35,45],[50,30]] }] }],
   salva_formazione: null,
   // la distinta e' una funzione, non una vista: risponde a /rpc/distinta
   // la distinta ora torna anche gli accompagnatori e i dati del modulo
@@ -160,6 +162,12 @@ async function provaPagina(p) {
     url: 'https://esempio.netlify.app' + (p.file === 'index.html' ? '/' : '/' + path.dirname(p.file) + '/'),
     virtualConsole: vc,
     beforeParse(w) {
+      // jsdom non implementa la cattura del puntatore, che serve a trascinare
+      // e a disegnare: senza queste tre righe quel codice non verrebbe mai provato
+      const catturati = new Set();
+      w.Element.prototype.setPointerCapture = function () { catturati.add(this); };
+      w.Element.prototype.hasPointerCapture = function () { return catturati.has(this); };
+      w.Element.prototype.releasePointerCapture = function () { catturati.delete(this); };
       if (p.prima) p.prima(w);
       w.fetch = finteRisposte;
       w.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
@@ -176,7 +184,7 @@ async function provaPagina(p) {
   // Aprire ogni finestra: il caricamento da solo non tocca il codice dei
   // moduli, ed e li che si nascondono meta degli errori.
   const bottoni = dom.window.document.querySelectorAll(
-    'button[id^=apri], .giocatore, .giornata .azioni-riga button, .partite button, .consegne .riga, #moduli button, #svuota');
+    'button[id^=apri], .giocatore, .giornata .azioni-riga button, .partite button, .consegne .riga, #moduli button, #svuota, .attrezzi button');
   for (const b of bottoni) {
     try { b.click(); } catch (e) { errori.push('clic su ' + (b.id || b.className) + ': ' + e.message); }
     await new Promise((r) => setTimeout(r, 20));
