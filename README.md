@@ -163,13 +163,32 @@ e mostra chi ha dato la disponibilità con numero di maglia, nome e cognome per
 esteso e tessere. Da lì si stampa un foglio da portare al campo, con una casella
 da spuntare per chi si presenta.
 
-Il cognome per esteso arriva dalla funzione `distinta`, non dalle viste
-pubbliche: quelle danno apposta solo nome e iniziale, perché le legge chiunque
-apra il sito. All'arbitro però non presenti "Nicolò V.", quindi il cognome esce
-da una funzione che prima chiede il codice della squadra.
+**Quello che esce dalla stampante è il modulo ufficiale** della lega
+(`Templates/Calciotto 2026 - Modulo Distinta.pdf`): stesse colonne, stesso testo,
+stesso ordine, 18 righe per i giocatori e 5 per gli accompagnatori. Non riempiamo
+il PDF originale — non ha campi compilabili, andrebbe sovrascritto a coordinate
+fisse e si romperebbe al primo ritocco — ma la carta che l'organizzazione riceve
+è il loro modulo.
+
+Il cognome per esteso, la data di nascita e il documento arrivano dalla funzione
+`distinta`, non dalle viste pubbliche: quelle danno apposta solo nome e iniziale.
+`distinta` chiede il **codice della squadra**, non quello di gestione: la distinta
+la compila chi va al campo.
 
 La stampa non usa una pagina a parte: c'è un `@media print` che toglie di mezzo
 tutto il resto e lascia solo il foglio, riempito al momento in `#stampa`.
+
+### I dati che vuole il modulo
+
+Data di nascita, tipo e numero del documento **non compaiono in nessuna pagina e
+non si modificano dal sito**: si scrivono solo dal Table Editor di Supabase.
+Escono soltanto sulla distinta stampata, che è il posto dove servono.
+
+Cosa manca per compilare il modulo si vede da `dati_distinta_mancanti`, e la
+pagina lo dice anche prima di stampare, elencando chi ha dei buchi.
+
+Le scadenze delle tessere invece stanno nella scheda del giocatore insieme ai
+numeri, sotto il codice di gestione: il modulo le chiede per gli accompagnatori.
 
 ### I numeri di tessera, e lo sblocco gestione
 
@@ -311,6 +330,7 @@ Confident/
 ├── aggiornamento-8-numeri-tessera.sql
 ├── aggiornamento-9-staff-fuori-rosa.sql
 ├── aggiornamento-10-consegne.sql
+├── aggiornamento-11-modulo-distinta.sql
 ├── ISTRUZIONI.md                       come è stata messa online la pagina divise
 └── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
 ```

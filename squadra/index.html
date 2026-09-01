@@ -111,7 +111,7 @@
 
   <div id="elenco" class="caricamento"></div>
 
-  <p class="note" id="nota">Tocca una persona per aprire la sua scheda: tessere e scadenza della visita medica — serve il codice di gestione. <b>Senza certificato medico valido non si può dare la disponibilità per una partita.</b> Email e telefono non compaiono da nessuna parte sul sito: si vedono solo dalla gestione.</p>
+  <p class="note" id="nota">Tocca una persona per aprire la sua scheda: tessere e scadenza della visita medica — serve il codice di gestione. <b>Senza certificato medico valido non si può dare la disponibilità per una partita.</b> Data di nascita e documento d'identità servono al modulo della distinta ma non si toccano da qui e non compaiono in nessuna pagina: si scrivono dalla gestione del database. Email e telefono nemmeno.</p>
 
   <footer class="site-footer">Green Lions · <a href="/">torna alla home</a></footer>
 
@@ -182,17 +182,25 @@
       <input type="checkbox" name="anspi">
       <span>Tesserato ANSPI<small>Ne servono almeno due in campo per tutta la partita.</small></span>
     </label>
-    <label><span>Numero tessera ANSPI</span>
-      <input name="anspiNumero" maxlength="40" autocapitalize="characters" placeholder="come sta scritto sulla tessera">
-    </label>
+    <div class="riga">
+      <label><span>Numero tessera ANSPI</span>
+        <input name="anspiNumero" maxlength="40" autocapitalize="characters" placeholder="come sta scritto">
+      </label>
+      <label><span>Scadenza ANSPI</span><input name="anspiScadenza" type="date"></label>
+    </div>
 
     <label class="spunta">
       <input type="checkbox" name="csi">
       <span>Tesserato CSI</span>
     </label>
-    <label><span>Numero tessera CSI</span>
-      <input name="csiNumero" maxlength="40" autocapitalize="characters" placeholder="come sta scritto sulla tessera">
-    </label>
+    <div class="riga">
+      <label><span>Numero tessera CSI</span>
+        <input name="csiNumero" maxlength="40" autocapitalize="characters" placeholder="come sta scritto">
+      </label>
+      <label><span>Scadenza CSI</span><input name="csiScadenza" type="date"></label>
+    </div>
+    <p class="appunto" style="margin:-6px 0 14px;font-size:12.5px;color:var(--ink-2)">
+      Le scadenze le chiede il modulo della distinta, per gli accompagnatori.</p>
 
     <div id="zonaVisita">
       <label><span>Scadenza della visita medica</span>
@@ -413,6 +421,8 @@ function apriTessere(g) {
   if (!gioca) moduloTessere.elements.visita.value = '';
   moduloTessere.elements.anspiNumero.value = g.tessera_anspi_numero || '';
   moduloTessere.elements.csiNumero.value   = g.tessera_csi_numero || '';
+  moduloTessere.elements.anspiScadenza.value = g.tessera_anspi_scadenza || '';
+  moduloTessere.elements.csiScadenza.value   = g.tessera_csi_scadenza || '';
   if (codiceGestione) moduloTessere.elements.codice.value = codiceGestione;
 
   // senza gestione sbloccata i numeri salvati non li conosciamo: meglio dirlo
@@ -509,7 +519,9 @@ moduloTessere.addEventListener('submit', async ev => {
       _csi:   moduloTessere.elements.csi.checked,
       _visita_scadenza: moduloTessere.elements.visita.value || null,
       _anspi_numero: moduloTessere.elements.anspiNumero.value.trim() || null,
-      _csi_numero:   moduloTessere.elements.csiNumero.value.trim() || null
+      _csi_numero:   moduloTessere.elements.csiNumero.value.trim() || null,
+      _anspi_scadenza: moduloTessere.elements.anspiScadenza.value || null,
+      _csi_scadenza:   moduloTessere.elements.csiScadenza.value || null
     });
 
     finestraTessere.close();

@@ -35,7 +35,7 @@ const DATI = {
   calendario_pubblico: [
     { id: 1, titolo: 'Campionato 1a', tipo: 'partita', avversario: 'Smama', inizio: '2099-09-14T13:30:00+00:00',
       durata_min: 90, luogo: 'Campo Paradiso', indirizzo: 'Via Paradiso 11', note: 'Ritrovo un ora prima',
-      stato: 'programmata', sequenza: 0, aggiornato_il: '2026-08-01T10:00:00+00:00' },
+      stato: 'programmata', sequenza: 0, in_casa: true, aggiornato_il: '2026-08-01T10:00:00+00:00' },
     { id: 2, titolo: 'Amichevole', tipo: 'partita', avversario: 'Paradiso', inizio: '2020-09-14T13:30:00+00:00',
       durata_min: 90, luogo: 'Campo', indirizzo: null, note: null,
       stato: 'annullata', sequenza: 1, aggiornato_il: '2026-08-01T10:00:00+00:00' },
@@ -62,11 +62,20 @@ const DATI = {
   ],
   kit_presi: [{ numero: 8, nome: 'Nicolò' }],
   // la distinta e' una funzione, non una vista: risponde a /rpc/distinta
+  // la distinta ora torna anche gli accompagnatori e i dati del modulo
   distinta: [
-    { numero: 1, nome: 'Thomas', cognome: 'Ferrari', tessera_anspi: true, tessera_csi: false,
-      tessera_anspi_numero: '00123-AB', tessera_csi_numero: null, visita_scadenza: '2099-01-01', stato: 'si' },
-    { numero: 8, nome: 'Nicolò', cognome: 'Venieri', tessera_anspi: false, tessera_csi: true,
-      tessera_anspi_numero: null, tessera_csi_numero: 'CSI/9910', visita_scadenza: '2099-01-01', stato: 'forse' },
+    { e_giocatore: true, numero: 1, nome: 'Thomas', cognome: 'Ferrari',
+      data_nascita: '1998-04-12', documento_tipo: "Carta d'identità", documento_numero: 'CA1234567',
+      tessera_tipo: 'ANSPI', tessera_numero: '00123-AB', tessera_scadenza: null,
+      ruolo: 'giocatore', visita_scadenza: '2099-01-01', stato: 'si' },
+    { e_giocatore: true, numero: 8, nome: 'Nicolò', cognome: 'Venieri',
+      data_nascita: null, documento_tipo: null, documento_numero: null,
+      tessera_tipo: 'CSI', tessera_numero: 'CSI/9910', tessera_scadenza: null,
+      ruolo: 'centrocampista', visita_scadenza: '2099-01-01', stato: 'forse' },
+    { e_giocatore: false, numero: null, nome: 'Mario', cognome: 'Rossi',
+      data_nascita: '1975-02-20', documento_tipo: "Carta d'identità", documento_numero: 'CA5550001',
+      tessera_tipo: 'ANSPI', tessera_numero: 'ANSPI-777', tessera_scadenza: '2027-12-31',
+      ruolo: 'allenatore', visita_scadenza: null, stato: 'si' },
   ],
   da_sollecitare: [{ id: 3, nome: 'Anna', cognome: 'Rossi', telefono: '3331234567' }],
   rosa_gestione: [],

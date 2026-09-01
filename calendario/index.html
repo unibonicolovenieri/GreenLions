@@ -145,8 +145,16 @@
 
   /* ============================================================
      Il foglio da portare al campo.
-     A schermo non esiste; in stampa è l'unica cosa che resta,
-     perché tutto il resto della pagina viene tolto di mezzo.
+
+     Riproduce il modulo ufficiale "Calciotto 2026 — Distinta gara"
+     (Templates/Calciotto 2026 - Modulo Distinta.pdf): stesse
+     colonne, stesso ordine, stesso testo. Non riempiamo il PDF
+     originale — non ha campi compilabili, andrebbe sovrascritto
+     a coordinate fisse e si romperebbe al primo ritocco — ma
+     quello che esce dalla stampante è il modulo, ed è la carta
+     che l'organizzazione riceve.
+
+     A schermo non esiste; in stampa resta solo lui.
      ============================================================ */
   #stampa { display: none; }
 
@@ -155,27 +163,43 @@
     dialog::backdrop { display: none !important; }
     #stampa { display: block !important; }
 
-    @page { margin: 14mm; }
+    @page { size: A4 portrait; margin: 12mm; }
     body { background: #fff; color: #000; }
 
-    #stampa { font: 11pt/1.45 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #000; }
-    #stampa h1 { font-size: 16pt; margin: 0 0 1mm; letter-spacing: -.01em; }
-    #stampa .quando { margin: 0 0 7mm; font-size: 10.5pt; }
-    #stampa table { width: 100%; border-collapse: collapse; }
-    #stampa th, #stampa td { border: 1px solid #000; padding: 2.4mm 3mm; text-align: left; }
-    #stampa th {
-      font-size: 8.5pt; text-transform: uppercase; letter-spacing: .07em;
-      background: #ececec; -webkit-print-color-adjust: exact; print-color-adjust: exact;
-    }
-    #stampa td.casella { width: 9mm; }
-    #stampa td.num { width: 12mm; font-weight: 700; text-align: center; }
-    #stampa td.tessera { white-space: normal; font-size: 10pt; }
-    #stampa td.documento { width: 34mm; }
-    /* le righe vuote devono essere abbastanza alte da scriverci a penna */
-    #stampa tbody td { height: 7.5mm; }
+    /* il modulo originale è composto in un serif: lo seguiamo */
+    #stampa { font: 10.5pt/1.32 "Times New Roman", Times, Georgia, serif; color: #000; }
+
+    #stampa .testata { text-align: center; margin: 0 0 4mm; }
+    #stampa .testata h1 { font-size: 18pt; margin: 0; font-weight: 700; letter-spacing: .2pt; }
+    #stampa .testata h1 small { font-size: 13pt; font-weight: 700; }
+    #stampa .squadra { margin: 0 0 3.5mm; font-size: 13.5pt; font-weight: 700; padding-left: 12mm; }
+    #stampa .squadra span { font-weight: 400; }
+
+    #stampa .avvertenze { margin: 0 0 3.5mm; font-size: 9.8pt; text-align: justify; line-height: 1.28; }
+    #stampa .avvertenze b { font-weight: 700; }
+
+    #stampa .gara { margin: 0 0 3mm; font-size: 11.5pt; }
+    #stampa .gara span { display: inline-block; margin-right: 8mm; }
+    #stampa .gara b { font-weight: 400; border-bottom: 1px dotted #000; padding: 0 2mm; }
+
+    #stampa table { width: 100%; border-collapse: collapse; margin: 0 0 2mm; }
+    #stampa th, #stampa td { border: 1px solid #000; text-align: left; }
+    #stampa th { font-size: 9pt; font-weight: 700; text-transform: uppercase; vertical-align: top;
+                 padding: 1.1mm 1.6mm; }
+    /* Niente padding verticale sulle celle: altezza e padding si sommano, e con
+       18 righe bastava quel millimetro per far sbordare le firme a pagina due.
+       Cosi' l'altezza della riga e' esattamente quella scritta qui. */
+    #stampa td { font-size: 10pt; height: 6.2mm; padding: 0 1.6mm; vertical-align: middle; }
+    #stampa tr { page-break-inside: avoid; }
     #stampa tr.forse td { color: #444; }
-    #stampa .riassunto { margin: 6mm 0 0; font-size: 10pt; color: #000; }
-    #stampa .avvertenza { margin: 2mm 0 0; font-size: 10pt; font-weight: 700; }
+
+    #stampa .titoletto { margin: 1mm 0 1mm; font-size: 11pt; }
+
+    #stampa .firme { margin: 4mm 0 0; width: 100%; font-size: 10.5pt; }
+    #stampa .firme td { border: none; height: auto; padding: 0; }
+    #stampa .firme .riga-punti td { padding-top: 6mm; }
+
+    #stampa .manchevole { margin: 3mm 0 0; font-size: 9.5pt; font-weight: 700; }
   }
   .separa { margin: 16px 0 0; padding-top: 15px; border-top: 1px solid var(--line); }
 </style>
@@ -283,6 +307,15 @@
       </label>
       <label><span>Avversario</span><input name="avversario" maxlength="80" placeholder="solo per le partite"></label>
     </div>
+
+    <label><span>Dove giochiamo</span>
+      <select name="inCasa">
+        <option value="si" selected>In casa</option>
+        <option value="no">In trasferta</option>
+      </select>
+    </label>
+    <p class="appunto" style="margin:-6px 0 14px;font-size:12.5px;color:var(--ink-2)">
+      Serve al modulo della distinta, che scrive «PARTITA: casa vs ospite» in quell'ordine.</p>
 
     <div class="riga">
       <label><span>Data e ora</span><input name="inizio" type="datetime-local" required
@@ -1022,20 +1055,37 @@ moduloDistinta.addEventListener('submit', async ev => {
   }
 });
 
-/** La tessera col suo numero, pronta da ricopiare sulla distinta ufficiale. */
-function tessereDi(r) {
-  const t = [];
-  if (r.tessera_anspi) t.push('ANSPI' + (r.tessera_anspi_numero ? ' ' + r.tessera_anspi_numero : ''));
-  if (r.tessera_csi)   t.push('CSI'   + (r.tessera_csi_numero   ? ' ' + r.tessera_csi_numero   : ''));
-  return t.length ? t.join('  ·  ') : '—';
-}
 
-/* Quante righe stampare comunque, anche se i disponibili sono meno. */
-const RIGHE_FOGLIO = 18;
+/* Righe del modulo ufficiale: 18 per i giocatori, 5 per gli
+   accompagnatori. Restano anche quando i disponibili sono meno,
+   perché al campo capita che si presenti chi non aveva risposto. */
+const RIGHE_GIOCATORI = 18;
+const RIGHE_ACCOMPAGNATORI = 5;
+
+const SQUADRA_NOSTRA = 'Green Lions';
 
 /** Il certificato copre il giorno della partita? */
 const copertoDaVisita = (r, g) =>
   !!r.visita_scadenza && r.visita_scadenza >= perIlModulo(g.inizio).slice(0, 10);
+
+/** Una data del database (2026-09-14) come la vuole il modulo. */
+function dataModulo(iso) {
+  if (!iso) return '';
+  const d = new Date(iso.length <= 10 ? iso + 'T00:00' : iso);
+  if (isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat('it-IT', {
+    timeZone: 'Europe/Rome', day: '2-digit', month: '2-digit', year: 'numeric'
+  }).format(d);
+}
+
+/** Cosa manca a questa persona per finire sul modulo. */
+function mancanze(r) {
+  const buchi = [];
+  if (!r.data_nascita) buchi.push('data di nascita');
+  if (!r.documento_tipo || !r.documento_numero) buchi.push('documento');
+  if (r.e_giocatore === false && r.tessera_tipo && !r.tessera_scadenza) buchi.push('scadenza tessera');
+  return buchi;
+}
 
 function disegnaDistinta(g, righe) {
   const elenco = document.getElementById('distintaElenco');
@@ -1051,109 +1101,168 @@ function disegnaDistinta(g, righe) {
 
     const chi = voce.querySelector('.chi');
     chi.textContent = r.nome + ' ' + r.cognome + ' ';
+    if (r.e_giocatore === false) {
+      const ruolo = document.createElement('em');
+      ruolo.textContent = '(' + r.ruolo + ')';
+      chi.appendChild(ruolo);
+    }
     if (r.stato === 'forse') {
       const nota = document.createElement('em');
-      nota.textContent = '(forse)';
+      nota.textContent = ' (forse)';
       chi.appendChild(nota);
     }
 
     const bolli = voce.querySelector('.bolli');
-    if (r.tessera_anspi) bolli.appendChild(chipTessera('anspi',
-      'ANSPI' + (r.tessera_anspi_numero ? ' ' + r.tessera_anspi_numero : '')));
-    if (r.tessera_csi) bolli.appendChild(chipTessera('csi',
-      'CSI' + (r.tessera_csi_numero ? ' ' + r.tessera_csi_numero : '')));
-    if (!copertoDaVisita(r, g)) bolli.appendChild(chipTessera('visita', 'visita'));
+    if (r.tessera_tipo) bolli.appendChild(chipTessera(
+      r.tessera_tipo === 'ANSPI' ? 'anspi' : 'csi',
+      r.tessera_tipo + (r.tessera_numero ? ' ' + r.tessera_numero : '')));
+    if (r.e_giocatore !== false && !copertoDaVisita(r, g)) {
+      bolli.appendChild(chipTessera('visita', 'visita'));
+    }
+    // quello che manca al modulo si vede prima di stampare, non dopo
+    const buchi = mancanze(r);
+    if (buchi.length) bolli.appendChild(chipTessera('visita', 'manca ' + buchi[0]));
 
     elenco.appendChild(voce);
   }
 
-  const sicuri   = righe.filter(r => r.stato === 'si').length;
-  const forse    = righe.filter(r => r.stato === 'forse').length;
-  const anspiSi  = righe.filter(r => r.stato === 'si' && r.tessera_anspi).length;
-  const csiSi    = righe.filter(r => r.stato === 'si' && r.tessera_csi).length;
+  const giocatori = righe.filter(r => r.e_giocatore !== false);
+  const staff     = righe.filter(r => r.e_giocatore === false);
+  const sicuri    = giocatori.filter(r => r.stato === 'si').length;
+  const forse     = giocatori.filter(r => r.stato === 'forse').length;
+  const anspiSi   = giocatori.filter(r => r.stato === 'si' && r.tessera_tipo === 'ANSPI').length;
 
   const riassunto = sicuri + (sicuri === 1 ? ' giocatore sicuro' : ' giocatori sicuri') +
     (forse ? ', più ' + forse + ' in forse' : '') +
-    ' · ' + anspiSi + ' ANSPI · ' + csiSi + ' CSI';
+    (staff.length ? ' · ' + staff.length + ' fra accompagnatori' : '') +
+    ' · ' + anspiSi + ' ANSPI';
 
-  document.getElementById('distintaRiassunto').textContent = righe.length
-    ? riassunto
+  const incompleti = righe.filter(r => mancanze(r).length);
+  document.getElementById('distintaRiassunto').innerHTML = righe.length
+    ? riassunto + (incompleti.length
+        ? '<br><b style="color:var(--kit-rosso)">Sul modulo resteranno dei buchi: mancano dati per ' +
+          incompleti.map(r => r.nome + ' ' + r.cognome).join(', ') +
+          '. Si completano da Supabase.</b>'
+        : '')
     : 'Per questa giornata non ha ancora risposto nessuno.';
 
-  costruisciFoglio(g, righe, { sicuri, forse, anspiSi, csiSi, riassunto });
+  costruisciFoglio(g, giocatori, staff, anspiSi);
 }
 
-/** Prepara il foglio che esce dalla stampante. */
-function costruisciFoglio(g, righe, conti) {
+/**
+ * Il modulo ufficiale, riempito.
+ *
+ * Segue riga per riga "Calciotto 2026 — Modulo distinta gara":
+ * intestazione, avvertenze, dati della gara, tabella dei giocatori,
+ * tabella degli accompagnatori, firme.
+ */
+function costruisciFoglio(g, giocatori, staff, anspiSi) {
   const foglio = document.getElementById('stampa');
   foglio.innerHTML = '';
 
-  const titolo = document.createElement('h1');
-  titolo.textContent = 'Green Lions · distinta';
-  foglio.appendChild(titolo);
+  const aggiungi = (tag, classe, testo) => {
+    const e = document.createElement(tag);
+    if (classe) e.className = classe;
+    if (testo != null) e.textContent = testo;
+    foglio.appendChild(e);
+    return e;
+  };
 
-  const quando = document.createElement('p');
-  quando.className = 'quando';
-  quando.textContent =
-    nomeGiornata(g) + ' — ' +
-    fmt(g.inizio, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) +
-    ', ore ' + fmt(g.inizio, { hour: '2-digit', minute: '2-digit' }) + ' · ' +
-    (g.indirizzo ? g.luogo + ', ' + g.indirizzo : g.luogo);
-  foglio.appendChild(quando);
+  // --- intestazione ---
+  const testata = aggiungi('div', 'testata');
+  testata.innerHTML = '<h1>CALCIOTTO 2026 <small>MODULO DISTINTA GARA</small></h1>';
 
-  const tabella = document.createElement('table');
-  tabella.innerHTML =
-    '<thead><tr><th></th><th>N.</th><th>Nome e cognome</th><th>Tessera</th>' +
-    '<th>N. documento</th></tr></thead><tbody></tbody>';
-  const corpo = tabella.querySelector('tbody');
+  const squadra = aggiungi('p', 'squadra');
+  squadra.innerHTML = 'DELLA SQUADRA: <span></span>';
+  squadra.querySelector('span').textContent = SQUADRA_NOSTRA;
 
-  // Sempre almeno RIGHE_FOGLIO righe: al campo capita che si presenti
-  // qualcuno che non aveva risposto, e ci vuole lo spazio per scriverlo.
-  // Se i disponibili sono di più, si allunga: nessuno resta fuori.
-  for (let i = 0; i < Math.max(RIGHE_FOGLIO, righe.length); i++) {
-    const r = righe[i];
+  aggiungi('p', 'avvertenze',
+    'In questo modulo vengono segnati tutti i giocatori e gli accompagnatori presenti per una ' +
+    'determinata partita. I giocatori inseriti nella distinta devono essere NECESSARIAMENTE presenti ' +
+    'nel foglio della rosa della squadra. Il foglio della distinta va presentato in formato cartaceo ' +
+    'all’organizzazione almeno 15 minuti prima del calcio d’inizio della partita. ' +
+    'Prima della partita sarà anche svolto l’appello, per cui sarà necessario presentare i documenti ' +
+    'd’identità in originale (anche per gli accompagnatori). Inserire in distinta il tipo di documento ed il numero.');
+
+  // --- dati della gara ---
+  const casa   = g.in_casa === false ? (g.avversario || '') : SQUADRA_NOSTRA;
+  const ospite = g.in_casa === false ? SQUADRA_NOSTRA : (g.avversario || '');
+  const gara = aggiungi('p', 'gara');
+  gara.innerHTML = '<span>PARTITA: <b class="casa"></b> vs <b class="ospite"></b></span>' +
+                   '<span>GIOCATA A: <b class="dove"></b></span>' +
+                   '<span>IL: <b class="giorno"></b></span>';
+  gara.querySelector('.casa').textContent   = casa || g.titolo;
+  gara.querySelector('.ospite').textContent = ospite;
+  gara.querySelector('.dove').textContent   = g.luogo || '';
+  gara.querySelector('.giorno').textContent = fmt(g.inizio, { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  // --- tabella dei giocatori ---
+  const tab = aggiungi('table');
+  tab.innerHTML = '<thead><tr>' +
+    '<th style="width:20mm">Numero maglia</th><th>Nome</th><th>Cognome</th>' +
+    '<th style="width:22mm">Data di nascita</th><th style="width:28mm">Documento di identità</th>' +
+    '<th style="width:30mm">Numero documento</th></tr></thead><tbody></tbody>';
+  const corpo = tab.querySelector('tbody');
+
+  for (let i = 0; i < Math.max(RIGHE_GIOCATORI, giocatori.length); i++) {
+    const r = giocatori[i];
     const riga = document.createElement('tr');
     if (r && r.stato === 'forse') riga.className = 'forse';
-    riga.innerHTML = '<td class="casella"></td><td class="num"></td><td></td>' +
-                     '<td class="tessera"></td><td class="documento"></td>';
+    riga.innerHTML = '<td></td><td></td><td></td><td></td><td></td><td></td>';
     if (r) {
-      const celle = riga.querySelectorAll('td');
-      celle[1].textContent = r.numero ?? '';
-      celle[2].textContent = r.nome + ' ' + r.cognome + (r.stato === 'forse' ? ' (forse)' : '');
-      celle[3].textContent = tessereDi(r);
+      const c = riga.querySelectorAll('td');
+      c[0].textContent = r.numero ?? '';
+      c[1].textContent = r.nome;
+      c[2].textContent = r.cognome;
+      c[3].textContent = dataModulo(r.data_nascita);
+      c[4].textContent = r.documento_tipo || '';
+      c[5].textContent = r.documento_numero || '';
     }
     corpo.appendChild(riga);
   }
-  foglio.appendChild(tabella);
 
-  const riassunto = document.createElement('p');
-  riassunto.className = 'riassunto';
-  riassunto.textContent = (righe.length
-    ? conti.riassunto + '. '
-    : 'Nessuna disponibilità registrata per questa giornata. ') +
-    'La casella a sinistra serve per spuntare chi si presenta; le righe vuote per chi arriva senza aver risposto.';
-  foglio.appendChild(riassunto);
+  // --- tabella degli accompagnatori ---
+  aggiungi('p', 'titoletto', 'ACCOMPAGNATORI');
 
-  // Non dovrebbe capitare, perché senza certificato non si dà la disponibilità.
-  // Ma la scadenza può essere stata corretta dopo: meglio accorgersene qui che
-  // davanti all'arbitro.
-  const scoperti = righe.filter(r => !copertoDaVisita(r, g));
-  if (scoperti.length) {
-    const avviso = document.createElement('p');
-    avviso.className = 'avvertenza';
-    avviso.textContent = 'ATTENZIONE: certificato medico non valido per questa data — ' +
-      scoperti.map(r => r.nome + ' ' + r.cognome).join(', ') + '.';
-    foglio.appendChild(avviso);
+  const tabS = aggiungi('table');
+  tabS.innerHTML = '<thead><tr>' +
+    '<th>Nome</th><th>Cognome</th><th style="width:22mm">Data di nascita</th>' +
+    '<th style="width:20mm">Tipo tessera</th><th style="width:26mm">Numero tessera</th>' +
+    '<th style="width:22mm">Data di scadenza</th><th style="width:24mm">Ruolo</th>' +
+    '</tr></thead><tbody></tbody>';
+  const corpoS = tabS.querySelector('tbody');
+
+  for (let i = 0; i < Math.max(RIGHE_ACCOMPAGNATORI, staff.length); i++) {
+    const r = staff[i];
+    const riga = document.createElement('tr');
+    riga.innerHTML = '<td></td><td></td><td></td><td></td><td></td><td></td><td></td>';
+    if (r) {
+      const c = riga.querySelectorAll('td');
+      c[0].textContent = r.nome;
+      c[1].textContent = r.cognome;
+      c[2].textContent = dataModulo(r.data_nascita);
+      c[3].textContent = r.tessera_tipo || '';
+      c[4].textContent = r.tessera_numero || '';
+      c[5].textContent = dataModulo(r.tessera_scadenza);
+      c[6].textContent = r.ruolo || '';
+    }
+    corpoS.appendChild(riga);
   }
 
-  // il vincolo che si scopre a bordo campo se non lo si è guardato prima
-  if (conti.anspiSi < 2) {
-    const avvertenza = document.createElement('p');
-    avvertenza.className = 'avvertenza';
-    avvertenza.textContent =
+  // --- firme ---
+  const firme = document.createElement('table');
+  firme.className = 'firme';
+  firme.innerHTML =
+    '<tr><td>Luogo e Data</td><td>Firma organizzazione</td><td>Firma squadra</td></tr>' +
+    '<tr class="riga-punti"><td>' + '…'.repeat(12) + '</td><td>' +
+    '…'.repeat(12) + '</td><td>' + '…'.repeat(12) + '</td></tr>';
+  foglio.appendChild(firme);
+
+  // --- avvertenza sul minimo ANSPI, sotto le firme e solo se serve ---
+  if (anspiSi < 2) {
+    aggiungi('p', 'manchevole',
       'ATTENZIONE: servono almeno 2 tesserati ANSPI in campo per tutta la partita, e qui ce ne sono ' +
-      conti.anspiSi + '.';
-    foglio.appendChild(avvertenza);
+      anspiSi + '.');
   }
 }
 
@@ -1184,6 +1293,7 @@ function apriGiornata(g) {
     c.luogo.value      = g.luogo;
     c.indirizzo.value  = g.indirizzo || '';
     c.note.value       = g.note || '';
+    c.inCasa.value     = g.in_casa === false ? 'no' : 'si';
   }
 
   finestraGiornata.showModal();
@@ -1227,7 +1337,8 @@ moduloGiornata.addEventListener('submit', async ev => {
     _avversario: d.avversario || null,
     _durata_min: durata,
     _indirizzo:  d.indirizzo || null,
-    _note:       d.note || null
+    _note:       d.note || null,
+    _in_casa:    d.inCasa !== 'no'
   };
 
   try {
