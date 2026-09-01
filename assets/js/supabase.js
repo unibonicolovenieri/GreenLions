@@ -118,6 +118,8 @@ const GL_MESSAGGI = {
   GIORNATA_INESISTENTE:'Questa giornata non c\'è più o è stata annullata. Ricarica la pagina.',
   GIOCATORE_INESISTENTE:'Questa persona non è più in rosa. Ricarica la pagina.',
   NASCITA_NON_VALIDA:  'La data di nascita non sembra giusta: controlla l\'anno.',
+  NON_DISPONIBILE:     'Non puoi schierare chi ha detto che non c\'è. Ricarica la pagina se qualcuno ha cambiato risposta.',
+  FUORI_DAL_CAMPO:     'Una pedina è finita fuori dal campo. Riprova a sistemarla.',
   PRIMA_ANNULLA:       'C\'è già chi ha questa giornata nel proprio calendario. Annullala prima — così gli parte la disdetta e l\'evento sparisce anche da lì — poi la puoi eliminare.',
   VISITA_MANCANTE:     'Non risulta il certificato medico: finché non c\'è, non si può dare la disponibilità. Parla con chi gestisce la squadra.',
   VISITA_SCADUTA:      'Il certificato medico è scaduto, o scade prima di questa partita. Va rinnovato: senza, non si scende in campo.',

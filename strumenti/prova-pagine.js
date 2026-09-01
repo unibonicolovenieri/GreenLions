@@ -61,6 +61,8 @@ const DATI = {
     { id: 1, girone: 'B', casa_id: 5, casa: 'Green Lions', ospite_id: 6, ospite: 'Smama', gol_casa: 3, gol_ospite: 1, giocata_il: '2026-09-14' },
   ],
   kit_presi: [{ numero: 8, nome: 'Nicolò' }],
+  formazione_pubblica: [],
+  salva_formazione: null,
   // la distinta e' una funzione, non una vista: risponde a /rpc/distinta
   // la distinta ora torna anche gli accompagnatori e i dati del modulo
   distinta: [
@@ -111,6 +113,7 @@ const PAGINE = [
   { file: 'divise/index.html',     attesi: '#grid .kit',                     minimo: 17 },
   // la pagina consegne parte chiusa: le do il codice gia' in tasca, come
   // succede quando il telefono ricarica la pagina al campo
+  { file: 'formazione/index.html', attesi: '#panchina .fuori',               minimo: 2 },
   { file: 'consegne/index.html',   attesi: '#elenco .riga',                  minimo: 3,
     prima: (w) => w.sessionStorage.setItem('gl-consegne-codice', 'PAROLA') },
 ];
@@ -173,7 +176,7 @@ async function provaPagina(p) {
   // Aprire ogni finestra: il caricamento da solo non tocca il codice dei
   // moduli, ed e li che si nascondono meta degli errori.
   const bottoni = dom.window.document.querySelectorAll(
-    'button[id^=apri], .giocatore, .giornata .azioni-riga button, .partite button, .consegne .riga');
+    'button[id^=apri], .giocatore, .giornata .azioni-riga button, .partite button, .consegne .riga, #moduli button, #svuota');
   for (const b of bottoni) {
     try { b.click(); } catch (e) { errori.push('clic su ' + (b.id || b.className) + ': ' + e.message); }
     await new Promise((r) => setTimeout(r, 20));

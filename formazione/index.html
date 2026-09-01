@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Pagina della squadra, non vetrina. -->
+<meta name="robots" content="noindex">
+<title>Formazione · Green Lions</title>
+<meta name="description" content="Come ci mettiamo in campo: chi gioca, dove, e cosa dice il regolamento.">
+<meta name="theme-color" content="#1c7a3e">
+
+<link rel="icon" type="image/svg+xml" href="/assets/img/leone.svg">
+<link rel="icon" type="image/png" href="/assets/img/favicon.png">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/css/site.css">
+<style>
+  /* ============================================================
+     Il campo è un contenitore con dentro pedine posizionate in
+     percentuale. Non SVG: così le pedine restano bottoni veri —
+     si toccano, si raggiungono da tastiera, si leggono a voce.
+     Il disegno del campo sta dietro e non intercetta i tocchi.
+     ============================================================ */
+
+  .campo {
+    position: relative; width: 100%; max-width: 520px; margin: 0 auto;
+    aspect-ratio: 2 / 3; border-radius: 14px; overflow: hidden;
+    background: #2f8a4d; box-shadow: var(--shadow); touch-action: none;
+  }
+  .campo svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .campo.posando { outline: 3px dashed var(--kit-giallo); outline-offset: -3px; }
+
+  .pedina {
+    position: absolute; transform: translate(-50%, -50%);
+    width: 44px; padding: 0; border: none; background: none;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
+  }
+  .pedina .tondo {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--kit-giallo); color: var(--kit-verde-s);
+    display: grid; place-items: center;
+    font: 800 14px/1 ui-sans-serif, system-ui, sans-serif;
+    box-shadow: 0 0 0 2px #fff, 0 2px 5px rgba(0,0,0,.35);
+    font-variant-numeric: tabular-nums;
+  }
+  .pedina .targa {
+    font: 700 10px/1.1 ui-sans-serif, system-ui, sans-serif; color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,.8); max-width: 62px; text-align: center;
+  }
+  .pedina[data-portiere] .tondo { background: var(--kit-bianco); color: #14647a; }
+  .pedina[data-anspi] .tondo { box-shadow: 0 0 0 2px var(--kit-verde), 0 0 0 4px #fff, 0 2px 5px rgba(0,0,0,.35); }
+  .pedina.presa { cursor: grabbing; z-index: 5; }
+  .pedina.scelta .tondo { box-shadow: 0 0 0 3px var(--kit-rosso), 0 2px 5px rgba(0,0,0,.35); }
+
+  /* ---- panchina ---- */
+  .panchina { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+  .fuori {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px 8px 8px; border-radius: 999px;
+    background: var(--surface); border: 1px solid var(--line);
+    font: 600 14px/1 ui-sans-serif, system-ui, sans-serif; color: inherit;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .fuori .tondo {
+    width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--surface-2); color: var(--ink-2); font-weight: 800; font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .fuori[data-anspi] .tondo { background: var(--accent-sf); color: var(--kit-verde); box-shadow: inset 0 0 0 2px currentColor; }
+  .fuori.scelta { border-color: var(--kit-rosso); box-shadow: 0 0 0 2px var(--kit-rosso); }
+  .fuori small { font-weight: 400; font-size: 11.5px; color: var(--ink-3); }
+
+  /* ---- controlli e avvisi ---- */
+  .verdetti { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 12px; }
+  .verdetto {
+    font: 700 12px/1 ui-sans-serif, system-ui, sans-serif;
+    padding: 7px 11px; border-radius: 999px;
+    background: var(--surface-2); color: var(--ink-2);
+  }
+  .verdetto.ok    { background: var(--accent-sf); color: var(--kit-verde); }
+  .verdetto.forse { background: #fdf3d4; color: #7d6005; }
+  .verdetto.no    { background: #fbeae9; color: #9d1a24; }
+  @media (prefers-color-scheme: dark) {
+    .verdetto.ok    { color: var(--accent); }
+    .verdetto.forse { background: #3a3010; color: #f0d375; }
+    .verdetto.no    { background: #33191b; color: #f0999b; }
+  }
+
+  .moduli { display: flex; flex-wrap: wrap; gap: 7px; margin: 16px 0 0; }
+  .titoletto { margin: 20px 0 8px; font-size: 12px; font-weight: 800;
+               letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3); }
+  .istruzioni { margin: 10px 0 0; font-size: 12.5px; color: var(--ink-3); line-height: 1.55; }
+  #esito { margin: 0 0 14px; }
+</style>
+</head>
+<body>
+
+<div class="banda"></div>
+
+<svg style="position:absolute;width:0;height:0" aria-hidden="true">
+  <symbol id="leone" viewBox="0 0 100 100"><path d="M50.0 2.0 L58.1 17.0 L72.3 7.5 L72.5 24.6 L89.5 22.7 L81.8 37.9 L97.7 44.2 L83.8 54.1 L94.9 67.0 L78.0 69.3 L81.8 85.9 L65.8 80.1 L61.5 96.6 L50.0 84.0 L38.5 96.6 L34.2 80.1 L18.2 85.9 L22.0 69.3 L5.1 67.0 L16.2 54.1 L2.3 44.2 L18.2 37.9 L10.5 22.7 L27.5 24.6 L27.7 7.5 L41.9 17.0 Z" style="fill:var(--leo-criniera,#1c7a3e)"/>
+  <circle cx="50" cy="50" r="34" style="fill:var(--leo-criniera,#1c7a3e)"/>
+  <circle cx="29" cy="32" r="8.5" style="fill:var(--leo-faccia,#efc41a)"/>
+  <circle cx="71" cy="32" r="8.5" style="fill:var(--leo-faccia,#efc41a)"/>
+  <circle cx="29" cy="32" r="3.8" style="fill:var(--leo-tratti,#12522a)"/>
+  <circle cx="71" cy="32" r="3.8" style="fill:var(--leo-tratti,#12522a)"/>
+  <circle cx="50" cy="52" r="27" style="fill:var(--leo-faccia,#efc41a)"/>
+  <ellipse cx="39" cy="45" rx="4.4" ry="5.4" style="fill:var(--leo-tratti,#12522a)"/>
+  <ellipse cx="61" cy="45" rx="4.4" ry="5.4" style="fill:var(--leo-tratti,#12522a)"/>
+  <path d="M50 66 L41.5 57.5 L58.5 57.5 Z" style="fill:var(--leo-tratti,#12522a)"/>
+  <path d="M50 66 L50 72" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M50 72 q -7 6 -13 0" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/>
+  <path d="M50 72 q  7 6  13 0" fill="none" style="stroke:var(--leo-tratti,#12522a)" stroke-width="3.4" stroke-linecap="round"/></symbol>
+</svg>
+
+<div class="wrap">
+
+  <p><a class="back" href="/calendario/">← Calendario</a></p>
+
+  <header class="site-head">
+    <span class="crest"><svg class="leo" viewBox="0 0 100 100" aria-hidden="true"><use href="#leone"></use></svg>Green Lions</span>
+    <h1>Formazione</h1>
+    <p class="lede" id="quale">—</p>
+  </header>
+
+  <div class="msg ok" id="esito"></div>
+  <div class="msg err" id="errore"></div>
+
+  <!-- scelta della giornata, se non arriva dall'indirizzo -->
+  <div id="scelta" hidden>
+    <p class="titoletto">Per quale giornata</p>
+    <div id="elencoGiornate"></div>
+  </div>
+
+  <div id="tavolo" hidden>
+    <div class="verdetti" id="verdetti"></div>
+
+    <div class="campo" id="campo">
+      <svg viewBox="0 0 100 150" aria-hidden="true" preserveAspectRatio="none">
+        <g fill="none" stroke="rgba(255,255,255,.55)" stroke-width="0.7">
+          <rect x="3" y="3" width="94" height="144"/>
+          <line x1="3" y1="75" x2="97" y2="75"/>
+          <circle cx="50" cy="75" r="13"/>
+          <rect x="25" y="3" width="50" height="20"/>
+          <rect x="25" y="127" width="50" height="20"/>
+          <rect x="38" y="3" width="24" height="8"/>
+          <rect x="38" y="139" width="24" height="8"/>
+        </g>
+      </svg>
+    </div>
+
+    <p class="istruzioni" id="istruzioni">
+      Tocca un giocatore in panchina e poi il punto del campo dove vuoi metterlo. Tocca chi è già
+      in campo per spostarlo, o trascinalo. Per rimandarlo in panchina, toccalo e poi tocca la panchina.
+    </p>
+
+    <p class="titoletto">In panchina</p>
+    <div class="panchina" id="panchina"></div>
+
+    <p class="titoletto">Moduli</p>
+    <div class="moduli" id="moduli"></div>
+
+    <div class="azioni" style="margin-top:20px">
+      <button type="button" class="btn ghost" id="svuota">Svuota il campo</button>
+      <button type="button" class="btn primary" id="salva">Salva</button>
+    </div>
+  </div>
+
+  <p class="note">La formazione la vede tutta la squadra. Per salvarla serve il codice della squadra,
+     quello che gira nel gruppo — non quello di gestione.</p>
+
+  <footer class="site-footer">Green Lions · <a href="/">torna alla home</a></footer>
+
+</div>
+
+<dialog id="finestraCodice">
+  <div class="testata"></div>
+  <form class="foglio" id="moduloCodice" novalidate>
+    <h2>Salva la formazione</h2>
+    <div class="msg err" id="erroreCodice"></div>
+    <label><span>Codice squadra</span>
+      <input name="codice" required maxlength="40" autocapitalize="characters" placeholder="quello scritto nel gruppo">
+    </label>
+    <div class="azioni">
+      <button type="button" class="btn ghost" id="chiudiCodice">Annulla</button>
+      <button type="submit" class="btn primary" id="confermaCodice">Salva</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/assets/js/supabase.js"></script>
+<script>
+/* ============================================================
+   Si gioca a otto: un portiere e sette. I moduli qui sotto sono
+   punti di partenza in percentuale del campo — y=0 è la porta
+   avversaria, y=100 la nostra — non vangelo: si sposta tutto a
+   mano subito dopo.
+   ============================================================ */
+const IN_CAMPO = 8;
+const PORTA = { x: 50, y: 92 };
+
+const MODULI = {
+  '3-3-1': [PORTA, {x:25,y:72},{x:50,y:76},{x:75,y:72}, {x:25,y:48},{x:50,y:50},{x:75,y:48}, {x:50,y:24}],
+  '3-2-2': [PORTA, {x:25,y:72},{x:50,y:76},{x:75,y:72}, {x:35,y:50},{x:65,y:50}, {x:32,y:26},{x:68,y:26}],
+  '2-3-2': [PORTA, {x:35,y:74},{x:65,y:74}, {x:25,y:50},{x:50,y:52},{x:75,y:50}, {x:35,y:26},{x:65,y:26}],
+  '4-2-1': [PORTA, {x:18,y:72},{x:40,y:77},{x:60,y:77},{x:82,y:72}, {x:35,y:48},{x:65,y:48}, {x:50,y:24}]
+};
+
+/* Per riempire un modulo: prima il portiere in porta, poi i difensori
+   nelle caselle arretrate, e via salendo. Chi non ha un ruolo preciso
+   tappa i buchi. */
+const ORDINE_RUOLI = ['portiere','difensore','centrocampista','attaccante','giocatore'];
+
+const CHIAVE_CODICE = 'gl-codice-squadra';
+
+let giornata = null;
+let rosa = [];
+let risposte = [];
+let posti = new Map();      // giocatore_id -> {x, y}
+let scelto = null;          // chi sto spostando col tocco
+
+const campo     = document.getElementById('campo');
+const panchina  = document.getElementById('panchina');
+const esito     = document.getElementById('esito');
+const errore    = document.getElementById('errore');
+
+const leggiCodice = () => { try { return sessionStorage.getItem(CHIAVE_CODICE); } catch { return null; } };
+const salvaCodice = (c) => { try { sessionStorage.setItem(CHIAVE_CODICE, c); } catch {} };
+
+const fmt = (iso, o) => new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', ...o }).format(new Date(iso));
+const giornoDi = (iso) => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Rome',
+  year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso));
+
+function avvisa(riquadro, testo) {
+  riquadro.textContent = testo;
+  riquadro.classList.add('mostra');
+}
+
+/* ---------------- caricamento ---------------- */
+
+async function avvia() {
+  const id = Number(new URLSearchParams(location.search).get('giornata'));
+  const giornate = await glLeggi('calendario_pubblico', 'select=*&order=inizio.asc');
+  const utili = giornate.filter(g => g.stato === 'programmata');
+
+  giornata = utili.find(g => g.id === id) || null;
+
+  if (!giornata) {
+    const prossime = utili.filter(g => new Date(g.inizio) >= new Date());
+    if (prossime.length === 1) giornata = prossime[0];
+    else { scegliGiornata(prossime); return; }
+  }
+
+  await caricaGiornata();
+}
+
+function scegliGiornata(prossime) {
+  document.getElementById('scelta').hidden = false;
+  const dove = document.getElementById('elencoGiornate');
+  if (!prossime.length) {
+    dove.innerHTML = '<p class="vuoto">Non c\'è nessuna giornata in programma.</p>';
+    return;
+  }
+  for (const g of prossime) {
+    const a = document.createElement('a');
+    a.className = 'card';
+    a.href = '?giornata=' + g.id;
+    a.innerHTML = '<span class="card-txt"><span class="card-title"></span>' +
+                  '<span class="card-desc"></span></span><span class="card-go">→</span>';
+    a.querySelector('.card-title').textContent =
+      (g.tipo === 'partita' && g.avversario) ? 'Green Lions – ' + g.avversario : g.titolo;
+    a.querySelector('.card-desc').textContent =
+      fmt(g.inizio, { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' + g.luogo;
+    dove.appendChild(a);
+  }
+}
+
+async function caricaGiornata() {
+  document.getElementById('quale').textContent =
+    ((giornata.tipo === 'partita' && giornata.avversario)
+      ? 'Green Lions – ' + giornata.avversario : giornata.titolo) +
+    ' · ' + fmt(giornata.inizio, { weekday: 'long', day: 'numeric', month: 'long' });
+
+  [rosa, risposte] = await Promise.all([
+    glLeggi('rosa_pubblica', 'select=*&order=numero.asc.nullslast,nome.asc'),
+    glLeggi('disponibilita_pubblica', 'select=*&giornata_id=eq.' + giornata.id)
+  ]);
+  const schema = await glLeggi('formazione_pubblica', 'select=*&giornata_id=eq.' + giornata.id);
+
+  posti = new Map(schema.map(p => [p.giocatore_id, { x: Number(p.x), y: Number(p.y) }]));
+  document.getElementById('tavolo').hidden = false;
+  disegna();
+}
+
+/**
+ * Chi si può schierare: ha detto sì o forse, e non è staff.
+ *
+ * Le due viste vanno unite: la disponibilità dice chi ha risposto e come,
+ * la rosa dice la scadenza della visita. Cercandola nella prima si trova
+ * sempre "niente", e il controllo dei certificati direbbe che sono tutti
+ * scoperti — che è esattamente quello che faceva.
+ */
+const convocabili = () => risposte
+  .filter(r => (r.stato === 'si' || r.stato === 'forse') && r.e_giocatore !== false)
+  .map(r => ({ ...(rosa.find(x => x.id === r.giocatore_id) || {}), ...r, id: r.giocatore_id }));
+
+/* ---------------- disegno ---------------- */
+
+function disegna() {
+  const gente = convocabili();
+
+  for (const vecchia of campo.querySelectorAll('.pedina')) vecchia.remove();
+
+  for (const p of gente.filter(p => posti.has(p.id))) {
+    const dove = posti.get(p.id);
+    const pedina = document.createElement('button');
+    pedina.type = 'button';
+    pedina.className = 'pedina' + (scelto === p.id ? ' scelta' : '');
+    pedina.style.left = dove.x + '%';
+    pedina.style.top  = dove.y + '%';
+    if (p.ruolo === 'portiere') pedina.dataset.portiere = '';
+    if (p.tessera_anspi) pedina.dataset.anspi = '';
+    pedina.innerHTML = '<span class="tondo"></span><span class="targa"></span>';
+    pedina.querySelector('.tondo').textContent = p.numero ?? '–';
+    pedina.querySelector('.targa').textContent = p.nome;
+    pedina.setAttribute('aria-label', p.nome + ' ' + p.iniziale +
+      (p.numero != null ? ', numero ' + p.numero : '') + ', in campo');
+    collegaPedina(pedina, p.id);
+    campo.appendChild(pedina);
+  }
+
+  panchina.innerHTML = '';
+  const fuori = gente.filter(p => !posti.has(p.id));
+  if (!fuori.length) {
+    panchina.innerHTML = '<p class="istruzioni" style="margin:0">Sono tutti in campo.</p>';
+  }
+  for (const p of fuori) {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'fuori' + (scelto === p.id ? ' scelta' : '');
+    if (p.tessera_anspi) chip.dataset.anspi = '';
+    chip.innerHTML = '<span class="tondo"></span><span class="chi"></span>';
+    chip.querySelector('.tondo').textContent = p.numero ?? '–';
+    chip.querySelector('.chi').innerHTML = '';
+    chip.querySelector('.chi').textContent = p.nome + ' ' + p.iniziale;
+    if (p.stato === 'forse') {
+      const nota = document.createElement('small');
+      nota.textContent = ' (forse)';
+      chip.querySelector('.chi').appendChild(nota);
+    }
+    chip.onclick = () => { scelto = (scelto === p.id) ? null : p.id; disegna(); };
+    panchina.appendChild(chip);
+  }
+
+  campo.classList.toggle('posando', scelto !== null);
+  giudica(gente);
+}
+
+/* ---------------- i controlli di regolamento ---------------- */
+
+function giudica(gente) {
+  const dentro = gente.filter(p => posti.has(p.id));
+  const inPanchina = gente.filter(p => !posti.has(p.id));
+  const anspiDentro = dentro.filter(p => p.tessera_anspi).length;
+  const anspiFuori  = inPanchina.filter(p => p.tessera_anspi).length;
+  const portiere = dentro.some(p => p.ruolo === 'portiere');
+  const giorno = giornoDi(giornata.inizio);
+  const scoperti = dentro.filter(p => !p.visita_scadenza || p.visita_scadenza < giorno);
+
+  const dove = document.getElementById('verdetti');
+  dove.innerHTML = '';
+  const dì = (classe, testo) => {
+    const v = document.createElement('span');
+    v.className = 'verdetto ' + classe;
+    v.textContent = testo;
+    dove.appendChild(v);
+  };
+
+  dì(dentro.length === IN_CAMPO ? 'ok' : 'forse', dentro.length + ' su ' + IN_CAMPO + ' in campo');
+
+  if (anspiDentro >= 3) dì('ok', anspiDentro + ' ANSPI in campo');
+  else if (anspiDentro === 2) dì('forse', '2 ANSPI: nessuno dei due può uscire');
+  else dì('no', anspiDentro + ' ANSPI in campo, ne servono 2');
+
+  if (anspiDentro === 2 && anspiFuori > 0) dì('ok', anspiFuori + ' ANSPI in panchina per il cambio');
+
+  if (!portiere && dentro.length) dì('forse', 'nessun portiere in campo');
+  if (scoperti.length) dì('no', 'visita non valida: ' + scoperti.map(p => p.nome).join(', '));
+}
+
+/* ---------------- posare, spostare, trascinare ---------------- */
+
+/** Dal tocco alla percentuale, con i bordi rispettati. */
+function dovunque(ev) {
+  const r = campo.getBoundingClientRect();
+  const x = ((ev.clientX - r.left) / r.width) * 100;
+  const y = ((ev.clientY - r.top) / r.height) * 100;
+  return { x: Math.min(96, Math.max(4, x)), y: Math.min(96, Math.max(4, y)) };
+}
+
+campo.addEventListener('click', (ev) => {
+  if (ev.target.closest('.pedina')) return;   // il tocco su una pedina lo gestisce lei
+  if (scelto === null) return;
+  posti.set(scelto, dovunque(ev));
+  scelto = null;
+  disegna();
+});
+
+/* Toccare la panchina con qualcuno scelto lo rimanda fuori. */
+panchina.addEventListener('click', (ev) => {
+  if (ev.target.closest('.fuori')) return;
+  if (scelto !== null && posti.has(scelto)) { posti.delete(scelto); scelto = null; disegna(); }
+});
+
+function collegaPedina(pedina, id) {
+  let trascinando = false;
+
+  pedina.addEventListener('pointerdown', (ev) => {
+    // Eventi puntatore e non drag-and-drop: quello su Safari mobile non c'è.
+    pedina.setPointerCapture(ev.pointerId);
+    trascinando = false;
+    pedina.classList.add('presa');
+  });
+
+  pedina.addEventListener('pointermove', (ev) => {
+    if (!pedina.hasPointerCapture(ev.pointerId)) return;
+    trascinando = true;
+    const d = dovunque(ev);
+    pedina.style.left = d.x + '%';
+    pedina.style.top  = d.y + '%';
+  });
+
+  pedina.addEventListener('pointerup', (ev) => {
+    pedina.classList.remove('presa');
+    if (trascinando) {
+      posti.set(id, dovunque(ev));
+      scelto = null;
+    } else {
+      // tocco secco: la scelgo, così il tocco dopo la sposta
+      scelto = (scelto === id) ? null : id;
+    }
+    disegna();
+  });
+
+  pedina.addEventListener('pointercancel', () => { pedina.classList.remove('presa'); disegna(); });
+}
+
+/* ---------------- moduli ---------------- */
+
+for (const nome of Object.keys(MODULI)) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'btn ghost piccolo';
+  b.textContent = nome;
+  b.onclick = () => applica(nome);
+  document.getElementById('moduli').appendChild(b);
+}
+
+function applica(nome) {
+  const caselle = MODULI[nome];
+  const gente = convocabili().slice();
+
+  // il portiere in porta, poi si sale per ruolo; chi resta tappa i buchi
+  const ordinati = [];
+  const portiere = gente.find(p => p.ruolo === 'portiere');
+  if (portiere) ordinati.push(portiere);
+  for (const ruolo of ORDINE_RUOLI.slice(1)) {
+    for (const p of gente) if (p.ruolo === ruolo && !ordinati.includes(p)) ordinati.push(p);
+  }
+  for (const p of gente) if (!ordinati.includes(p)) ordinati.push(p);
+
+  posti = new Map();
+  ordinati.slice(0, caselle.length).forEach((p, i) => posti.set(p.id, { ...caselle[i] }));
+  scelto = null;
+  disegna();
+}
+
+document.getElementById('svuota').onclick = () => { posti = new Map(); scelto = null; disegna(); };
+
+/* ---------------- salvataggio ---------------- */
+
+const finestraCodice = document.getElementById('finestraCodice');
+const moduloCodice   = document.getElementById('moduloCodice');
+
+document.getElementById('salva').onclick = () => {
+  errore.classList.remove('mostra');
+  esito.classList.remove('mostra');
+  const gia = leggiCodice();
+  if (gia) { manda(gia); return; }
+  document.getElementById('erroreCodice').classList.remove('mostra');
+  moduloCodice.reset();
+  finestraCodice.showModal();
+};
+
+async function manda(codice) {
+  const bottone = document.getElementById('salva');
+  bottone.disabled = true;
+  bottone.textContent = 'Un attimo…';
+  try {
+    await glChiama('salva_formazione', {
+      _codice: codice,
+      _giornata_id: giornata.id,
+      _posti: [...posti].map(([g, d]) => ({ g, x: d.x, y: d.y }))
+    });
+    salvaCodice(codice);
+    finestraCodice.close();
+    avvisa(esito, 'Formazione salvata. La vede tutta la squadra.');
+  } catch (e) {
+    // il codice tenuto in tasca non vale più: meglio dimenticarlo
+    try { sessionStorage.removeItem(CHIAVE_CODICE); } catch {}
+    if (finestraCodice.open) avvisa(document.getElementById('erroreCodice'), glMessaggio(e));
+    else avvisa(errore, glMessaggio(e));
+  } finally {
+    bottone.disabled = false;
+    bottone.textContent = 'Salva';
+  }
+}
+
+moduloCodice.addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const codice = moduloCodice.elements.codice.value.trim();
+  if (!codice) return avvisa(document.getElementById('erroreCodice'), 'Manca il codice.');
+  manda(codice);
+});
+
+document.getElementById('chiudiCodice').onclick = () => finestraCodice.close();
+
+avvia().catch(e => avvisa(errore, glMessaggio(e)));
+</script>
+</body>
+</html>

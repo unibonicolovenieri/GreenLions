@@ -14,6 +14,7 @@ programmi installati: si aprono i file con un editor di testo e si salvano.
 | `/calendario/` | le giornate. Si dà la disponibilità e arriva l'invito da mettere in calendario; con il codice si creano e si modificano le giornate |
 | `/classifica/` | i tre gironi con punti e differenza reti, e i risultati |
 | `/regolamento/` | le regole del campionato e come si arriva alla finale |
+| `/formazione/` | come ci mettiamo in campo, con i controlli di regolamento dal vivo |
 | `/consegne/` | **solo gestione** — spuntare al campo chi ha ritirato la divisa |
 
 Tutte scrivono su Supabase e chiedono un codice per farlo. I codici sono **due**:
@@ -39,6 +40,7 @@ gestisce ne ricorda uno solo. Senza codice, dal sito non si scrive niente.
 ├── regolamento/index.html
 ├── classifica/index.html
 ├── consegne/index.html
+├── formazione/index.html
 ├── assets/
 │   ├── css/site.css      colori e stili comuni
 │   ├── js/supabase.js    lettura del database e chiamata alle sue funzioni
@@ -143,6 +145,7 @@ database, non la pagina: non si aggira smanettando col browser.
 | — (solo funzione) | `distinta`, `da_sollecitare` |
 | `classifica`, `partite_pubbliche` | `segna_risultato`, `elimina_risultato` |
 | — (solo funzione) | `consegne`, `segna_consegna` |
+| `formazione_pubblica` | `salva_formazione` |
 
 ### I tesserati ANSPI
 
@@ -247,6 +250,29 @@ gestione**: chi è sbarrato non deve poter alzare da sé la sbarra. Nella stessa
 scheda ci sono anche le tessere; se preferisci che i giocatori se le dichiarino
 da soli col codice di squadra, è una riga in `imposta_scheda`.
 
+### La formazione
+
+`/formazione/?giornata=<id>` è un campo con le pedine: si tocca un giocatore in
+panchina e poi il punto dove metterlo, oppure lo si trascina. Sul telefono il
+tocco-tocco è più veloce e più preciso del trascinamento, quindi ci sono
+entrambi. Non è drag-and-drop di HTML — su Safari mobile non funziona — ma
+eventi puntatore.
+
+Le pedine sono bottoni veri sopra un disegno del campo, non forme dentro un SVG:
+così restano raggiungibili da tastiera e leggibili a voce. Le posizioni si
+salvano **in percentuale**, quindi lo stesso schema vale su qualsiasi schermo.
+
+**Il valore non è la lavagna, sono i controlli.** Mentre sposti, la pagina dice
+quanti sono in campo, quanti ANSPI ci sono — rosso sotto i due, giallo con
+esattamente due perché allora nessuno dei due può uscire — se c'è un ANSPI in
+panchina per il cambio, se manca il portiere e se qualcuno ha il certificato
+scaduto per quella data. Sono le stesse regole che il calendario racconta a
+parole; qui le vedi mentre decidi.
+
+Si salva con il **codice squadra** e non con quello di gestione: l'allenatore è
+esterno, il codice di gestione non ce l'ha, e la formazione è mestiere suo. In
+campo può andarci solo chi ha detto sì o forse, e lo impone il database.
+
 ### Le consegne delle divise
 
 `/consegne/` è una pagina da usare in piedi, al campo, con una mano sola: elenco
@@ -338,6 +364,7 @@ Confident/
 ├── aggiornamento-10-consegne.sql
 ├── aggiornamento-11-modulo-distinta.sql
 ├── aggiornamento-12-anagrafica-dalla-scheda.sql
+├── aggiornamento-13-formazione.sql
 ├── ISTRUZIONI.md                       come è stata messa online la pagina divise
 └── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
 ```

@@ -725,6 +725,15 @@ function scheda(g, passata) {
     azioni.appendChild(rispondi);
   }
 
+  // La formazione si prepara prima e si guarda al campo: solo sulle future.
+  if (!annullata && !passata) {
+    const schema = document.createElement('a');
+    schema.className = 'btn ghost piccolo';
+    schema.href = '/formazione/?giornata=' + g.id;
+    schema.textContent = 'Formazione';
+    azioni.appendChild(schema);
+  }
+
   // Sollecitare ha senso solo prima: a partita giocata non serve più.
   if (!annullata && !passata) {
     const sollecita = document.createElement('button');
