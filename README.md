@@ -180,15 +180,21 @@ tutto il resto e lascia solo il foglio, riempito al momento in `#stampa`.
 
 ### I dati che vuole il modulo
 
-Data di nascita, tipo e numero del documento **non compaiono in nessuna pagina e
-non si modificano dal sito**: si scrivono solo dal Table Editor di Supabase.
-Escono soltanto sulla distinta stampata, che è il posto dove servono.
+Data di nascita, tipo e numero del documento si scrivono **dalla scheda della
+persona**, nella pagina Squadra, insieme a tessere e visita medica. Non entrano
+in `rosa_pubblica`: si vedono solo a **gestione sbloccata**, come i cognomi per
+esteso. Chi apre il sito senza codice continua a leggere nome, iniziale e nulla
+più.
 
-Cosa manca per compilare il modulo si vede da `dati_distinta_mancanti`, e la
-pagina lo dice anche prima di stampare, elencando chi ha dei buchi.
+Toccare una persona con la gestione chiusa **non apre la scheda**: chiede prima
+il codice, e poi apre da sola quella che stavi cercando. Non è per rigore, è per
+non fare danni: senza il codice la pagina non sa cosa c'è già scritto, e salvare
+riempirebbe di vuoti quello che non vede.
 
-Le scadenze delle tessere invece stanno nella scheda del giocatore insieme ai
-numeri, sotto il codice di gestione: il modulo le chiede per gli accompagnatori.
+A gestione sbloccata, chi ha buchi nell'anagrafica porta un bollino rosso
+«no anagrafica»: si vede subito chi aprire, senza tentarli a uno a uno. Lo stesso
+elenco esiste in SQL come `dati_distinta_mancanti`, e la pagina della distinta lo
+ripete prima di stampare.
 
 ### I numeri di tessera, e lo sblocco gestione
 
@@ -331,6 +337,7 @@ Confident/
 ├── aggiornamento-9-staff-fuori-rosa.sql
 ├── aggiornamento-10-consegne.sql
 ├── aggiornamento-11-modulo-distinta.sql
+├── aggiornamento-12-anagrafica-dalla-scheda.sql
 ├── ISTRUZIONI.md                       come è stata messa online la pagina divise
 └── ISTRUZIONI-squadra-calendario.md    come attivare rosa, calendario e inviti
 ```

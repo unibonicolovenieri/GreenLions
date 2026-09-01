@@ -55,6 +55,13 @@
   .spunta { display: flex; gap: 10px; align-items: flex-start; font-size: 14.5px; font-weight: 600; color: var(--ink); margin: 0 0 12px; }
   .spunta input { width: auto; margin: 2px 0 0; flex: none; accent-color: var(--kit-verde); }
   .spunta small { display: block; font-weight: 400; font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+
+  .sezione {
+    margin: 18px 0 10px; font-size: 11px; font-weight: 800;
+    letter-spacing: .13em; text-transform: uppercase; color: var(--ink-3);
+    border-top: 1px solid var(--line); padding-top: 12px;
+  }
+  .foglio .sezione:first-of-type { margin-top: 4px; border-top: none; padding-top: 0; }
   .numero {
     flex: none; width: 38px; height: 38px; display: grid; place-items: center;
     border-radius: 10px; background: var(--kit-giallo); color: var(--kit-verde-s);
@@ -111,7 +118,7 @@
 
   <div id="elenco" class="caricamento"></div>
 
-  <p class="note" id="nota">Tocca una persona per aprire la sua scheda: tessere e scadenza della visita medica — serve il codice di gestione. <b>Senza certificato medico valido non si può dare la disponibilità per una partita.</b> Data di nascita e documento d'identità servono al modulo della distinta ma non si toccano da qui e non compaiono in nessuna pagina: si scrivono dalla gestione del database. Email e telefono nemmeno.</p>
+  <p class="note" id="nota">Tocca una persona per aprire la sua scheda: tessere e scadenza della visita medica — serve il codice di gestione. <b>Senza certificato medico valido non si può dare la disponibilità per una partita.</b> Data di nascita e documento d'identità si scrivono nella scheda, ma si vedono solo a gestione sbloccata: chi apre il sito senza codice legge nome, iniziale e nient'altro. Email e telefono non compaiono comunque da nessuna parte.</p>
 
   <footer class="site-footer">Green Lions · <a href="/">torna alla home</a></footer>
 
@@ -178,6 +185,28 @@
 
     <div class="msg err" id="erroreTessere"></div>
 
+    <!-- Anagrafica in cima: è quella che serve al modulo della distinta,
+         ed è quella che si riempie più spesso. -->
+    <p class="sezione">Anagrafica</p>
+
+    <label><span>Data di nascita</span><input name="dataNascita" type="date"></label>
+
+    <div class="riga">
+      <label><span>Documento</span>
+        <select name="documentoTipo" id="documentoTipo">
+          <option value="">—</option>
+          <option value="Carta d'identità">Carta d'identità</option>
+          <option value="Patente">Patente</option>
+          <option value="Passaporto">Passaporto</option>
+        </select>
+      </label>
+      <label><span>Numero documento</span>
+        <input name="documentoNumero" maxlength="40" autocapitalize="characters" placeholder="come sul documento">
+      </label>
+    </div>
+
+    <p class="sezione">Tessere</p>
+
     <label class="spunta">
       <input type="checkbox" name="anspi">
       <span>Tesserato ANSPI<small>Ne servono almeno due in campo per tutta la partita.</small></span>
@@ -203,7 +232,9 @@
       Le scadenze le chiede il modulo della distinta, per gli accompagnatori.</p>
 
     <div id="zonaVisita">
-      <label><span>Scadenza della visita medica</span>
+      <p class="sezione">Visita medica</p>
+
+    <label><span>Scadenza della visita medica</span>
         <input name="visita" type="date">
       </label>
       <p class="appunto" style="margin:-6px 0 14px;font-size:12.5px;color:var(--ink-2)">
@@ -227,7 +258,8 @@
   <form class="foglio" id="moduloGestione" novalidate>
     <h2>Gestione</h2>
     <p class="lede" style="text-align:left;margin:0 0 16px">Con il codice di gestione la rosa mostra
-       i cognomi per esteso e i numeri di tessera, e le schede si aprono già compilate.</p>
+       i cognomi per esteso, l'anagrafica e i numeri di tessera, e le schede si aprono già compilate
+       e pronte da correggere.</p>
 
     <div class="msg err" id="erroreGestione"></div>
 
@@ -364,6 +396,12 @@ function disegna() {
       const visita = g.e_giocatore === false ? null : statoVisita(g.visita_scadenza);
       if (visita) tessere.appendChild(bollino(visita.classe, visita.testo));
 
+      // Con la gestione sbloccata sappiamo cosa manca al modulo della
+      // distinta: si vede subito chi aprire, senza andarli a tentare.
+      if (codiceGestione && (!g.data_nascita || !g.documento_tipo || !g.documento_numero)) {
+        tessere.appendChild(bollino('visita', 'no anagrafica'));
+      }
+
       scheda.setAttribute('aria-label',
         'Scheda di ' + g.nome + ' ' + g.iniziale + ': ' +
         (g.tessera_anspi ? 'ANSPI ' : '') + (g.tessera_csi ? 'CSI' : '') +
@@ -396,6 +434,16 @@ function bollino(classe, testo) {
   return b;
 }
 
+/* Il tipo di documento salvato potrebbe non essere fra i tre in elenco
+   (scritto a mano da Supabase, prima che questa scheda esistesse): in quel
+   caso lo si aggiunge, invece di farlo sparire senza dire niente. */
+function scegliDocumento(valore) {
+  const tendina = document.getElementById('documentoTipo');
+  const noti = [...tendina.options].map(o => o.value);
+  if (valore && !noti.includes(valore)) tendina.appendChild(new Option(valore, valore));
+  tendina.value = valore;
+}
+
 /* ---------------- tesseramento ---------------- */
 
 const finestraTessere = document.getElementById('finestraTessere');
@@ -403,13 +451,24 @@ const moduloTessere   = document.getElementById('moduloTessere');
 const erroreTessere   = document.getElementById('erroreTessere');
 const confermaTessere = document.getElementById('confermaTessere');
 let giocatoreScelto = null;
+let schedaDopoSblocco = null;   // la scheda da aprire appena sbloccata la gestione
 
 function apriTessere(g) {
+  // Senza gestione sbloccata non sappiamo cosa c'è già scritto, e salvare
+  // riempirebbe di vuoti quello che non vediamo. Quindi prima si sblocca —
+  // e poi si apre da sola la scheda che si stava cercando.
+  if (!codiceGestione) {
+    schedaDopoSblocco = g;
+    document.getElementById('apriGestione').click();
+    return;
+  }
+
   giocatoreScelto = g;
   erroreTessere.classList.remove('mostra');
   moduloTessere.reset();
   document.getElementById('tessereChi').textContent =
-    g.nome + ' ' + g.iniziale + (g.numero != null ? ' · numero ' + g.numero : '');
+    [g.nome, g.cognome || g.iniziale].filter(Boolean).join(' ') +
+    (g.numero != null ? ' · numero ' + g.numero : '');
   moduloTessere.elements.anspi.checked = !!g.tessera_anspi;
   moduloTessere.elements.csi.checked   = !!g.tessera_csi;
   moduloTessere.elements.visita.value      = g.visita_scadenza || '';
@@ -423,6 +482,14 @@ function apriTessere(g) {
   moduloTessere.elements.csiNumero.value   = g.tessera_csi_numero || '';
   moduloTessere.elements.anspiScadenza.value = g.tessera_anspi_scadenza || '';
   moduloTessere.elements.csiScadenza.value   = g.tessera_csi_scadenza || '';
+
+  moduloTessere.elements.dataNascita.value     = g.data_nascita || '';
+  moduloTessere.elements.documentoNumero.value = g.documento_numero || '';
+  scegliDocumento(g.documento_tipo || '');
+
+  // Senza gestione sbloccata non sappiamo cosa c'è già scritto, e salvare
+  // sovrascriverebbe con dei vuoti: meglio dirlo prima che dopo.
+
   if (codiceGestione) moduloTessere.elements.codice.value = codiceGestione;
 
   // senza gestione sbloccata i numeri salvati non li conosciamo: meglio dirlo
@@ -489,8 +556,15 @@ moduloGestione.addEventListener('submit', async ev => {
     finestraGestione.close();
     aggiornaPulsanteGestione();
     disegna();
-    esito.textContent = 'Gestione sbloccata: cognomi per esteso e numeri di tessera. Vale solo per questa visita.';
+    esito.textContent = 'Gestione sbloccata: anagrafica, cognomi per esteso e numeri di tessera. Vale solo per questa visita.';
     esito.classList.add('mostra');
+
+    // riprendo la scheda che stava cercando, con i dati veri stavolta
+    if (schedaDopoSblocco) {
+      const aggiornato = inElenco().find(p => p.id === schedaDopoSblocco.id) || schedaDopoSblocco;
+      schedaDopoSblocco = null;
+      apriTessere(aggiornato);
+    }
   } catch (e) {
     erroreGestione.textContent = glMessaggio(e);
     erroreGestione.classList.add('mostra');
@@ -521,7 +595,10 @@ moduloTessere.addEventListener('submit', async ev => {
       _anspi_numero: moduloTessere.elements.anspiNumero.value.trim() || null,
       _csi_numero:   moduloTessere.elements.csiNumero.value.trim() || null,
       _anspi_scadenza: moduloTessere.elements.anspiScadenza.value || null,
-      _csi_scadenza:   moduloTessere.elements.csiScadenza.value || null
+      _csi_scadenza:   moduloTessere.elements.csiScadenza.value || null,
+      _data_nascita:     moduloTessere.elements.dataNascita.value || null,
+      _documento_tipo:   moduloTessere.elements.documentoTipo.value || null,
+      _documento_numero: moduloTessere.elements.documentoNumero.value.trim() || null
     });
 
     finestraTessere.close();
