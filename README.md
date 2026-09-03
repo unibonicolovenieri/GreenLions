@@ -1,7 +1,6 @@
 <div align="center">
 
-# 🦁 Green Lions
-
+# ⚽️ Campetto
 **Il sistema operativo di una squadra di calcio amatoriale.**
 
 Divise, rosa, calendario, disponibilità, distinta ufficiale, formazione, classifica.
